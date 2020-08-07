@@ -157,3 +157,23 @@ void ComputeUltrasoundDist(TIM_HandleTypeDef *htim){
 		__HAL_TIM_SET_CAPTUREPOLARITY(htim, channel, TIM_INPUTCHANNELPOLARITY_RISING);
 	}
 }
+
+void GetUltrasoundDist(float* distArr){
+	if(g_UR.pLF) distArr[US_LF] = g_UR.pLF->dist;
+	else distArr[US_LF] = -1;
+	
+	if(g_UR.pF) distArr[US_F] = g_UR.pF->dist;
+	else distArr[US_F] = -1;
+	
+	if(g_UR.pRF) distArr[US_RF] = g_UR.pRF->dist;
+	else distArr[US_RF] = -1;
+	
+	if(g_UR.pLB) distArr[US_LB] = g_UR.pLB->dist;
+	else distArr[US_LB] = -1;
+	
+	if(g_UR.pB) distArr[US_B] = g_UR.pB->dist;
+	else distArr[US_B] = -1;
+	
+	if(g_UR.pRB) distArr[US_RB] = g_UR.pRB->dist;
+	else distArr[US_RB] = -1;
+}

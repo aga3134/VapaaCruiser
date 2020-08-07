@@ -3,13 +3,12 @@
 
 #include "main.h"
 
-#define US_UNKNOWN 0
-#define US_LF 1
-#define US_F 2
-#define US_RF 3
-#define US_LB 4
-#define US_B 5
-#define US_RB 6
+#define US_LF 0
+#define US_F 1
+#define US_RF 2
+#define US_LB 3
+#define US_B 4
+#define US_RB 5
 
 typedef struct{
 	unsigned char dir;
@@ -24,6 +23,8 @@ void StartUltrasound(UltrasoundInstance* pInstance);
 void StopUltrasound(UltrasoundInstance* pInstance);
 
 void SendUltrasoundTrigger(void);
+//由timer的capture input訊號驅動
 void ComputeUltrasoundDist(TIM_HandleTypeDef *htim);
+void GetUltrasoundDist(float* distArr);
 
 #endif

@@ -55,8 +55,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-#define MSG_SIZE 128
-char g_Msg[MSG_SIZE] = {0};
+
 unsigned char g_Update = 0;
 /* USER CODE END PV */
 
@@ -81,6 +80,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	g_Update = 1;
 }
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle){
+	
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -137,9 +141,7 @@ int main(void)
 		if(g_Update == 1){
 			SendUltrasoundTrigger();
 			
-			memset(g_Msg,0,MSG_SIZE);
-			sprintf(g_Msg,"%f\r\n",usF.dist);
-			HAL_UART_Transmit(&huart1, (uint8_t*)g_Msg,MSG_SIZE,1000);
+			SendSensorStatus();
 		}
   }
   /* USER CODE END 3 */
