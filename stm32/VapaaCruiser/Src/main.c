@@ -83,6 +83,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle){
 	ParseGPSInfo(UartHandle);
+	ReceiveCommand(UartHandle);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle){
@@ -131,6 +132,7 @@ int main(void)
 	StartUltrasound(&usF);
 	
 	StartGPSReceive();
+	StartCommandReceive();
 	
 	//update in every 30ms
 	HAL_TIM_Base_Start_IT(&htim2);
@@ -146,7 +148,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 		if(g_Update == 1){
 			SendUltrasoundTrigger();
-			
+			ProcessCommand();
 			SendSensorStatus();
 			g_Update = 0;
 		}

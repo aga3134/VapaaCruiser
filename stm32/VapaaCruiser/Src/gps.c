@@ -50,10 +50,10 @@ enum MessageType{
 	UNKNOWN
 };
 
-static unsigned char g_InData;
+static unsigned char g_GPSInData;
 
 void StartGPSReceive(){
-	HAL_UART_Receive_IT(&huart3,&g_InData,1);
+	HAL_UART_Receive_IT(&huart3,&g_GPSInData,1);
 }
 
 void StopGPSReceive(){
@@ -181,24 +181,25 @@ unsigned char ProcessGPS(){
 }
 
 void ParseGPSInfo(UART_HandleTypeDef *UartHandle){
+	if(UartHandle->Instance != USART3) return;
 	switch(g_GPSState){
 		case START:
 			//將讀到的資料存到gps buffer
-			FIFOBufferPutData(&g_GPSBuffer,&g_InData,1);
-			if(g_InData == '\n'){	//已讀到完整訊息，取出位置資訊
+			FIFOBufferPutData(&g_GPSBuffer,&g_GPSInData,1);
+			if(g_GPSInData == '\n'){	//已讀到完整訊息，取出位置資訊
 				g_GPSState = END;
 				ProcessGPS();
 			}
 			break;
 		case END:
-			if(g_InData == '$'){	//讀到開始訊號
+			if(g_GPSInData == '$'){	//讀到開始訊號
 				g_GPSState = START;
 			}
 			break;
 	}
   
 	//繼續等下一筆資料
-	HAL_UART_Receive_IT(&huart3,&g_InData,1);
+	HAL_UART_Receive_IT(&huart3,&g_GPSInData,1);
 	
 	//echo回去
 	//HAL_UART_Transmit_IT(&huart1, &g_InData,1);
