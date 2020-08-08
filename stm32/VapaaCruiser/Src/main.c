@@ -148,7 +148,8 @@ int main(void)
     /* USER CODE BEGIN 3 */
 		if(g_Update == 1){
 			SendUltrasoundTrigger();
-			ProcessCommand();
+			ParseCommand();
+			UpdateMotorSpeed();
 			SendSensorStatus();
 			g_Update = 0;
 		}

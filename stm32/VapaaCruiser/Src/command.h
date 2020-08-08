@@ -6,6 +6,6 @@
 void StartCommandReceive(void);
 void StopCommandReceive(void);
 void ReceiveCommand(UART_HandleTypeDef *UartHandle);
-unsigned char ProcessCommand(void);
+unsigned char ParseCommand(void);
 
 #endif

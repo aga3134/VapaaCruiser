@@ -1,4 +1,5 @@
 #include "command.h"
+#include "motor.h"
 #include "FIFOBuffer.h"
 
 extern UART_HandleTypeDef huart1;
@@ -40,7 +41,23 @@ void ReceiveCommand(UART_HandleTypeDef *UartHandle){
 	//HAL_UART_Transmit_IT(&huart1, &g_InData,1);
 }
 
-unsigned char ProcessCommand(){
+void ProcessCommand(Command* pCmd){
+	float forward,turn;
+	switch(pCmd->cmd){
+		case CMD_MOVE:
+			forward = (pCmd->args[0]/255.0-0.5)*2;
+			turn = (pCmd->args[1]/255.0-0.5)*2;
+			SetMotorSpeed(forward,turn,0.1);
+			break;
+		case CMD_STOP:
+			StopMotor();
+			break;
+		default:
+			break;
+	}
+}
+
+unsigned char ParseCommand(){
 	int i=0;
 	int len = FIFOBufferGetDataSize(&g_CmdRxBuffer);
 	enum ParseState state = HEADER;
@@ -76,7 +93,7 @@ unsigned char ProcessCommand(){
 			case ARGS:
 				end++;
 				sum += d;
-				cmd.args[end-start-2] = d;
+				cmd.args[end-start-3] = d;
 				if(end == start+2+cmd.argNum) state = CHECKSUM;
 				break;
 			case CHECKSUM:
@@ -87,18 +104,13 @@ unsigned char ProcessCommand(){
 				break;
 		}
 	}
-	//去掉header之前的資料
-	if(state == HEADER) start = len;	//讀到最後都還沒讀到header，全部清掉
-	FIFOBufferClear(&g_CmdRxBuffer,start);
+	//清掉command及之前的資料
+	FIFOBufferClear(&g_CmdRxBuffer,end);
 	
 	if(state == CHECKSUM){	//已讀到完整command
-		unsigned short cmdSize = end-start+1;
 		if(valid){	//checksum檢驗ok
+			ProcessCommand(&cmd);
 			return 1;
-		}
-		else{	//checksum檢驗失敗，丟掉此command
-			FIFOBufferClear(&g_CmdRxBuffer,cmdSize);
-			return 0;
 		}
 	}
 	return 0;	//command未完整，下次再讀
