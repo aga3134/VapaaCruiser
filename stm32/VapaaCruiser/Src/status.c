@@ -29,7 +29,7 @@ void SendSensorStatus(){
 	//put data into g_TxBuffer
 	len = strlen(g_StatusMsg);
 	unsigned short num = FIFOBufferPutData(&g_StatusTxBuffer,(unsigned char*)g_StatusMsg,len);
-	if(num == 0) return;	//滿了
+	//if(num == 0) return;	//滿了
 	
 	//若沒在傳輸就開始傳
 	if(!g_StatusTxLock){

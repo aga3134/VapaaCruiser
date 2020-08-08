@@ -92,6 +92,7 @@ unsigned char ProcessGPS(){
 	int i=0,termID=0,termStart=0,termEnd=0;
 	int len = FIFOBufferGetDataSize(&g_GPSBuffer);
 	char data[256] = {0};
+	char term[32] = {0};
 	unsigned char sum = 0,checkSum=0;
 	enum MessageType type = UNKNOWN;
 	
@@ -112,50 +113,51 @@ unsigned char ProcessGPS(){
 			for(i=0;i<len;i++){
 				if(data[i] == ','){
 					termEnd = i;
+					strncpy(term,data+termStart,termEnd-termStart);
 					switch(termID){
 						case 0:
 							break;
 						case 1:
-							g_GPSInfo.time = atof(data+termStart);
+							g_GPSInfo.time = atof(term);
 							break;
 						case 2:
-							g_GPSInfo.oriLat = atof(data+termStart);
+							g_GPSInfo.oriLat = atof(term);
 							break;
 						case 3:
 							g_GPSInfo.dirLat = data[termStart];
 							break;
 						case 4:
-							g_GPSInfo.oriLng = atof(data+termStart);
+							g_GPSInfo.oriLng = atof(term);
 							break;
 						case 5:
 							g_GPSInfo.dirLng = data[termStart];
 							break;
 						case 6:
-							g_GPSInfo.quality = atoi(data+termStart);
+							g_GPSInfo.quality = atoi(term);
 							break;
 						case 7:
-							g_GPSInfo.satNum = atoi(data+termStart);
+							g_GPSInfo.satNum = atoi(term);
 							break;
 						case 8:
-							g_GPSInfo.HDOP = atof(data+termStart);
+							g_GPSInfo.HDOP = atof(term);
 							break;
 						case 9:
-							g_GPSInfo.altitude = atof(data+termStart);
+							g_GPSInfo.altitude = atof(term);
 							break;
 						case 10:
 							g_GPSInfo.altitudeUnit = data[termStart];
 							break;
 						case 11:
-							g_GPSInfo.geoHeight = atof(data+termStart);
+							g_GPSInfo.geoHeight = atof(term);
 							break;
 						case 12:
 							g_GPSInfo.geoHeightUnit = data[termStart];
 							break;
 						case 13:
-							g_GPSInfo.sinceLastUpdate = atof(data+termStart);
+							g_GPSInfo.sinceLastUpdate = atof(term);
 							break;
 						case 14:
-							strncpy(g_GPSInfo.stationID,data+termStart,termEnd-termStart);
+							strcpy(g_GPSInfo.stationID,term);
 							break;
 					}
 					termID++;
