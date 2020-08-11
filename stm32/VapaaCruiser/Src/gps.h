@@ -7,7 +7,8 @@ void StartGPSReceive(void);
 void StopGPSReceive(void);
 
 //¥Ñusart1ªºreceive complete interruptÅX°Ê
-void ParseGPSInfo(UART_HandleTypeDef *UartHandle);
+void ReceiveGPSInfo(UART_HandleTypeDef *UartHandle);
+void ProcessGPS(void);
 unsigned char GetGPSPos(float* lat, float* lng);
 
 #endif

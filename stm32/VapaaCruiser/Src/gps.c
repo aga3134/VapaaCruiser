@@ -38,12 +38,6 @@ static GPGGA_t g_GPSInfo;
 
 extern UART_HandleTypeDef huart3;
 
-enum GPSState{
-	START,
-	END
-};
-enum GPSState g_GPSState = END;
-
 enum MessageType{
 	GNGGA,
 	GNRMC,
@@ -88,15 +82,12 @@ unsigned char ComparePrefix(char* str, char* prefix, int len){
 	return 1;
 }
 
-unsigned char ProcessGPS(){
+unsigned char ParseGPSInfo(char* data, int len){
 	int i=0,termID=0,termStart=0,termEnd=0;
-	int len = FIFOBufferGetDataSize(&g_GPSBuffer);
-	char data[256] = {0};
 	char term[32] = {0};
 	unsigned char sum = 0,checkSum=0;
 	enum MessageType type = UNKNOWN;
 	
-	FIFOBufferGetData(&g_GPSBuffer,(unsigned char*)data,len);
 	for(i=0;i<len;i++){
 		if(data[i] == '*') break;
 		sum ^= data[i];
@@ -182,24 +173,45 @@ unsigned char ProcessGPS(){
 	return 0;
 }
 
-void ParseGPSInfo(UART_HandleTypeDef *UartHandle){
-	if(UartHandle->Instance != USART3) return;
-	switch(g_GPSState){
-		case START:
-			//將讀到的資料存到gps buffer
-			FIFOBufferPutData(&g_GPSBuffer,&g_GPSInData,1);
-			if(g_GPSInData == '\n'){	//已讀到完整訊息，取出位置資訊
-				g_GPSState = END;
-				ProcessGPS();
-			}
-			break;
-		case END:
-			if(g_GPSInData == '$'){	//讀到開始訊號
-				g_GPSState = START;
-			}
-			break;
+void ProcessGPS(){
+	int i=0, dataLen = 0, processed = -1;
+	int len = FIFOBufferGetDataSize(&g_GPSBuffer);
+	char data[256] = {0};
+	unsigned char d,parseStatus = 0;
+	
+	//取得gps指令頭尾位置
+	for(i=0;i<len;i++){
+		FIFOBufferPeekData(&g_GPSBuffer,&d,i);
+		
+		switch(parseStatus){
+			case 0:	//尋找gps指令開頭
+				if(d == '$'){
+					parseStatus = 1;
+				}
+				break;
+			case 1:	//尋找gps指令結尾
+				data[dataLen++] = d;
+			
+				if(d == '\n'){
+					processed = i;
+					parseStatus = 0;
+					ParseGPSInfo(data,dataLen);
+				}
+				break;
+		}
 	}
-  
+	//清空已處理的部分
+	if(processed > 0){
+		FIFOBufferClear(&g_GPSBuffer,processed);
+	}
+
+}
+
+void ReceiveGPSInfo(UART_HandleTypeDef *UartHandle){
+	if(UartHandle->Instance != USART3) return;
+	//將讀到的資料存到gps buffer
+	FIFOBufferPutData(&g_GPSBuffer,&g_GPSInData,1);
+	
 	//繼續等下一筆資料
 	HAL_UART_Receive_IT(&huart3,&g_GPSInData,1);
 	

@@ -1,8 +1,10 @@
 #include "FIFOBuffer.h"
+#include "string.h"
 
 void FIFOBufferInit(FIFOBufferInstance* instance){
 	instance->first = 0;
 	instance->last = 0;
+	memset(instance->buffer,0,BUFFER_SIZE);
 }
 
 unsigned short FIFOBufferGetDataSize(FIFOBufferInstance* instance){

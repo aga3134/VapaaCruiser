@@ -82,7 +82,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle){
-	ParseGPSInfo(UartHandle);
+	ReceiveGPSInfo(UartHandle);
 	ReceiveCommand(UartHandle);
 }
 
@@ -146,8 +146,18 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		
+		//若uart出錯變reset就重新init
+		if(huart1.gState == HAL_UART_STATE_RESET){
+			MX_USART1_UART_Init();
+		}
+		if(huart3.gState == HAL_UART_STATE_RESET){
+			MX_USART3_UART_Init();
+		}
+		
 		if(g_Update == 1){
 			SendUltrasoundTrigger();
+			ProcessGPS();
 			ParseCommand();
 			UpdateMotorSpeed();
 			SendSensorStatus();
@@ -350,7 +360,7 @@ static void MX_TIM8_Init(void)
   htim8.Instance = TIM8;
   htim8.Init.Prescaler = 16-1;
   htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim8.Init.Period = 10000-1;
+  htim8.Init.Period = 20000-1;
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim8.Init.RepetitionCounter = 0;
   htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
