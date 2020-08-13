@@ -6,10 +6,10 @@
 //為避免爆衝，再用MAX_FORWARD,MIN_FORWARD,MAX_TURN,MIN_TURN限制輸出%
 #define MIN_PULSE 544
 #define MAX_PULSE 2400
-#define MAX_FORWARD 0.55
-#define MIN_FORWARD 0.43
+#define MAX_FORWARD 0.555
+#define MIN_FORWARD 0.442
 #define MAX_TURN 0.8
-#define MIN_TURN 0.3
+#define MIN_TURN 0.4
 
 extern TIM_HandleTypeDef htim8;
 float g_TargetForward = 0, g_TargetTurn = 0;
@@ -65,6 +65,12 @@ void UpdateMotorSpeed(){
 	//計算要輸出的pulse
 	pwmF = minPulseF+(maxPulseF-minPulseF)*(g_CurForward+1)*0.5f;
 	pwmT = minPulseT+(maxPulseT-minPulseT)*(g_CurTurn+1)*0.5f;
-	htim8.Instance->CCR1 = pwmF;
+	
+	//為了讓電變產生後退需double click
+	if(g_TargetForward > -0.05f && g_TargetForward < 0.05f){
+		g_CurForward = 0;
+		htim8.Instance->CCR1 = MIN_PULSE;
+	}
+	else htim8.Instance->CCR1 = pwmF;
 	htim8.Instance->CCR2 = pwmT;
 }
