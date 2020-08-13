@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import serial
 from time import sleep
+import time
 import threading
 
 COM_PORT = "COM5"
@@ -45,6 +46,9 @@ if __name__ == "__main__":
     curTurn = 0
     curForward = 0
     rate = 0.5
+    #simulate double click 
+    state = "FORWARD"
+    stateTime = 0
     while not done:
         pygame.event.pump()
         keys = pygame.key.get_pressed()
@@ -80,11 +84,45 @@ if __name__ == "__main__":
         if curTurn < -1:
             curTurn = -1
 
+        #simulate double click
+        if state == "FORWARD":
+            if curForward < 0:
+                state = "BACKWARD_CLICK1"
+                stateTime = time.time()
+        elif state == "BACKWARD_CLICK1":
+            if curForward >= 0:
+                state = "FORWARD"
+            else:
+                t = time.time()
+                if t - stateTime > 0.7:
+                    print(t-stateTime)
+                    state = "BACKWARD_PAUSE"
+                    stateTime = t
+        elif state == "BACKWARD_PAUSE":
+            if curForward >= 0:
+                state = "FORWARD"
+            else:
+                t = time.time()
+                if t - stateTime > 0.4:
+                    state = "BACKWOARD_CLICK2"
+                    #讓車子從低速開始倒退，避免瞬間加速過大
+                    curForward = -0.1
+                    
+        elif state == "BACKWOARD_CLICK2":
+            if curForward > 0: #車有前進才換到forward，不然留在此state
+                state = "FORWARD"
+            elif curForward < -0.4: #要做到double click的後退訊號會讓車子倒衝太快，這邊把最高速度降低
+                curForward = -0.4
+
+        forward = curForward
+        if state == "BACKWARD_PAUSE":
+            forward = 0
+
         #send command
         header = 0xFE
         cmd = 0x01
         argNum = 2
-        forward = int((curForward+1)*0.5*255)
+        forward = int((forward+1)*0.5*255)
         turn = int((curTurn+1)*0.5*255)
         msg = [header,cmd,argNum,forward,turn]
         print(msg)
@@ -97,3 +135,5 @@ if __name__ == "__main__":
         ser.write(bytearray(msg))
 
         sleep(0.1)
+
+    thread.join()
