@@ -47,7 +47,7 @@ void ProcessCommand(Command* pCmd){
 		case CMD_MOVE:
 			forward = (pCmd->args[0]/255.0-0.5)*2;
 			turn = (pCmd->args[1]/255.0-0.5)*2;
-			SetMotorSpeed(forward,turn,0.3);
+			SetMotorSpeed(forward,turn);
 			break;
 		case CMD_STOP:
 			StopMotor();
