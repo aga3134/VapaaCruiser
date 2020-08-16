@@ -96,17 +96,18 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
     /* Peripheral clock enable */
     __HAL_RCC_TIM2_CLK_ENABLE();
   
-    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
     /**TIM2 GPIO Configuration    
-    PB10     ------> TIM2_CH3
-    PB11     ------> TIM2_CH4 
+    PA1     ------> TIM2_CH2
+    PA2     ------> TIM2_CH3
+    PA3     ------> TIM2_CH4 
     */
-    GPIO_InitStruct.Pin = US_LF_Receive_Pin|US_RF_Receive_Pin;
+    GPIO_InitStruct.Pin = US_LB_Receive_Pin|US_B_Receive_Pin|US_RB_Receive_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* TIM2 interrupt Init */
     HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
@@ -128,22 +129,21 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
     /**TIM3 GPIO Configuration    
     PA6     ------> TIM3_CH1
     PA7     ------> TIM3_CH2
-    PB0     ------> TIM3_CH3
-    PB1     ------> TIM3_CH4 
+    PB0     ------> TIM3_CH3 
     */
-    GPIO_InitStruct.Pin = US_F_Receive_Pin|US_B_Receive_Pin;
+    GPIO_InitStruct.Pin = US_LF_Receive_Pin|US_F_Receive_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = US_LB_Receive_Pin|US_RB_Receive_Pin;
+    GPIO_InitStruct.Pin = US_RF_Receive_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(US_RF_Receive_GPIO_Port, &GPIO_InitStruct);
 
     /* TIM3 interrupt Init */
     HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
@@ -210,10 +210,11 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
     __HAL_RCC_TIM2_CLK_DISABLE();
   
     /**TIM2 GPIO Configuration    
-    PB10     ------> TIM2_CH3
-    PB11     ------> TIM2_CH4 
+    PA1     ------> TIM2_CH2
+    PA2     ------> TIM2_CH3
+    PA3     ------> TIM2_CH4 
     */
-    HAL_GPIO_DeInit(GPIOB, US_LF_Receive_Pin|US_RF_Receive_Pin);
+    HAL_GPIO_DeInit(GPIOA, US_LB_Receive_Pin|US_B_Receive_Pin|US_RB_Receive_Pin);
 
     /* TIM2 interrupt DeInit */
     HAL_NVIC_DisableIRQ(TIM2_IRQn);
@@ -232,12 +233,11 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
     /**TIM3 GPIO Configuration    
     PA6     ------> TIM3_CH1
     PA7     ------> TIM3_CH2
-    PB0     ------> TIM3_CH3
-    PB1     ------> TIM3_CH4 
+    PB0     ------> TIM3_CH3 
     */
-    HAL_GPIO_DeInit(GPIOA, US_F_Receive_Pin|US_B_Receive_Pin);
+    HAL_GPIO_DeInit(GPIOA, US_LF_Receive_Pin|US_F_Receive_Pin);
 
-    HAL_GPIO_DeInit(GPIOB, US_LB_Receive_Pin|US_RB_Receive_Pin);
+    HAL_GPIO_DeInit(US_RF_Receive_GPIO_Port, US_RF_Receive_Pin);
 
     /* TIM3 interrupt DeInit */
     HAL_NVIC_DisableIRQ(TIM3_IRQn);

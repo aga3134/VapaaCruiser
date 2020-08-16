@@ -18,27 +18,27 @@ void StartUltrasound(UltrasoundInstance* pInstance){
 	switch(pInstance->dir){
 		case US_LF:
 			g_UR.pLF = pInstance;
-			HAL_TIM_IC_Start_IT(&htim2,TIM_CHANNEL_3);
+			HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_1);
 			break;
 		case US_F:
 			g_UR.pF = pInstance;
-			HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_1);
+			HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_2);
 			break;
 		case US_RF:
 			g_UR.pRF = pInstance;
-			HAL_TIM_IC_Start_IT(&htim2,TIM_CHANNEL_4);
+			HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_3);
 			break;
 		case US_LB:
 			g_UR.pLB = pInstance;
-			HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_3);
+			HAL_TIM_IC_Start_IT(&htim2,TIM_CHANNEL_2);
 			break;
 		case US_B:
 			g_UR.pB = pInstance;
-			HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_2);
+			HAL_TIM_IC_Start_IT(&htim2,TIM_CHANNEL_3);
 			break;
 		case US_RB:
 			g_UR.pRB = pInstance;
-			HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_4);
+			HAL_TIM_IC_Start_IT(&htim2,TIM_CHANNEL_4);
 			break;
 		default:
 			break;
@@ -49,27 +49,27 @@ void StopUltrasound(UltrasoundInstance* pInstance){
 	switch(pInstance->dir){
 		case US_LF:
 			g_UR.pLF = NULL;
-			HAL_TIM_IC_Stop_IT(&htim2,TIM_CHANNEL_3);
+			HAL_TIM_IC_Stop_IT(&htim3,TIM_CHANNEL_1);
 			break;
 		case US_F:
 			g_UR.pF = NULL;
-			HAL_TIM_IC_Stop_IT(&htim3,TIM_CHANNEL_1);
+			HAL_TIM_IC_Stop_IT(&htim3,TIM_CHANNEL_2);
 			break;
 		case US_RF:
 			g_UR.pRF = NULL;
-			HAL_TIM_IC_Stop_IT(&htim2,TIM_CHANNEL_4);
+			HAL_TIM_IC_Stop_IT(&htim3,TIM_CHANNEL_3);
 			break;
 		case US_LB:
 			g_UR.pLB = NULL;
-			HAL_TIM_IC_Stop_IT(&htim3,TIM_CHANNEL_3);
+			HAL_TIM_IC_Stop_IT(&htim2,TIM_CHANNEL_2);
 			break;
 		case US_B:
 			g_UR.pB = NULL;
-			HAL_TIM_IC_Stop_IT(&htim3,TIM_CHANNEL_2);
+			HAL_TIM_IC_Stop_IT(&htim2,TIM_CHANNEL_3);
 			break;
 		case US_RB:
 			g_UR.pRB = NULL;
-			HAL_TIM_IC_Stop_IT(&htim3,TIM_CHANNEL_4);
+			HAL_TIM_IC_Stop_IT(&htim2,TIM_CHANNEL_4);
 			break;
 		default:
 			break;
@@ -78,19 +78,9 @@ void StopUltrasound(UltrasoundInstance* pInstance){
 
 
 void SendUltrasoundTrigger(){
-	if(g_UR.pLF) HAL_GPIO_WritePin(US_LF_Trigger_GPIO_Port,US_LF_Trigger_Pin,GPIO_PIN_SET);
-	if(g_UR.pF) HAL_GPIO_WritePin(US_F_Trigger_GPIO_Port,US_F_Trigger_Pin,GPIO_PIN_SET);
-	if(g_UR.pRF) HAL_GPIO_WritePin(US_RF_Trigger_GPIO_Port,US_RF_Trigger_Pin,GPIO_PIN_SET);
-	if(g_UR.pLB) HAL_GPIO_WritePin(US_LB_Trigger_GPIO_Port,US_LB_Trigger_Pin,GPIO_PIN_SET);
-	if(g_UR.pB) HAL_GPIO_WritePin(US_B_Trigger_GPIO_Port,US_B_Trigger_Pin,GPIO_PIN_SET);
-	if(g_UR.pRB) HAL_GPIO_WritePin(US_RB_Trigger_GPIO_Port,US_RB_Trigger_Pin,GPIO_PIN_SET);
+	HAL_GPIO_WritePin(US_Trigger_GPIO_Port,US_Trigger_Pin,GPIO_PIN_SET);
 	HAL_Delay(1);
-	if(g_UR.pLF) HAL_GPIO_WritePin(US_LF_Trigger_GPIO_Port,US_LF_Trigger_Pin,GPIO_PIN_RESET);
-	if(g_UR.pF) HAL_GPIO_WritePin(US_F_Trigger_GPIO_Port,US_F_Trigger_Pin,GPIO_PIN_RESET);
-	if(g_UR.pRF) HAL_GPIO_WritePin(US_RF_Trigger_GPIO_Port,US_RF_Trigger_Pin,GPIO_PIN_RESET);
-	if(g_UR.pLB) HAL_GPIO_WritePin(US_LB_Trigger_GPIO_Port,US_LB_Trigger_Pin,GPIO_PIN_RESET);
-	if(g_UR.pB) HAL_GPIO_WritePin(US_B_Trigger_GPIO_Port,US_B_Trigger_Pin,GPIO_PIN_RESET);
-	if(g_UR.pRB) HAL_GPIO_WritePin(US_RB_Trigger_GPIO_Port,US_RB_Trigger_Pin,GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(US_Trigger_GPIO_Port,US_Trigger_Pin,GPIO_PIN_RESET);
 }
 
 void ComputeUltrasoundDist(TIM_HandleTypeDef *htim){
@@ -98,32 +88,32 @@ void ComputeUltrasoundDist(TIM_HandleTypeDef *htim){
 	uint32_t channel = 0;
 	int diff = 0;
 	
-	if(htim->Instance == TIM2){
+	if(htim->Instance == TIM3){
 		switch(htim->Channel){
-			case HAL_TIM_ACTIVE_CHANNEL_3:
+			case HAL_TIM_ACTIVE_CHANNEL_1:
 				target = g_UR.pLF;
-				channel = TIM_CHANNEL_3;
+				channel = TIM_CHANNEL_1;
 				break;
-			case HAL_TIM_ACTIVE_CHANNEL_4:
+			case HAL_TIM_ACTIVE_CHANNEL_2:
+				target = g_UR.pF;
+				channel = TIM_CHANNEL_2;
+				break;
+			case HAL_TIM_ACTIVE_CHANNEL_3:
 				target = g_UR.pRF;
-				channel = TIM_CHANNEL_4;
+				channel = TIM_CHANNEL_3;
 				break;
 			default:
 				break;
 		}
 	}
-	else if(htim->Instance == TIM3){
+	else if(htim->Instance == TIM2){
 		switch(htim->Channel){
-			case HAL_TIM_ACTIVE_CHANNEL_1:
-				target = g_UR.pF;
-				channel = TIM_CHANNEL_1;
-				break;
 			case HAL_TIM_ACTIVE_CHANNEL_2:
-				target = g_UR.pB;
+				target = g_UR.pLB;
 				channel = TIM_CHANNEL_2;
 				break;
 			case HAL_TIM_ACTIVE_CHANNEL_3:
-				target = g_UR.pLB;
+				target = g_UR.pB;
 				channel = TIM_CHANNEL_3;
 				break;
 			case HAL_TIM_ACTIVE_CHANNEL_4:

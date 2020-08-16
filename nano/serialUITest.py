@@ -15,15 +15,35 @@ pygame.init()
 screen = pygame.display.set_mode( (640,480) )
 pygame.display.set_caption("Serial UI")
 screen.fill((159, 182, 205))
-font = pygame.font.Font(None, 17)
+font = pygame.font.Font(None, 20)
 
 
 def display(str):
-    text = font.render(str, True, (255, 255, 255), (159, 182, 205))
-    textRect = text.get_rect()
-    textRect.centerx = screen.get_rect().centerx
-    textRect.centery = screen.get_rect().centery
-    screen.blit(text, textRect)
+    cx = 120
+    cy = 120
+    arr = str.split(",")
+    #lat lng
+    text = font.render(arr[0]+","+arr[1], True, (255, 255, 255), (159, 182, 205))
+    screen.blit(text, (cx,cy))
+    #LF
+    text = font.render(arr[2], True, (255, 255, 255), (159, 182, 205))
+    screen.blit(text, (10,10))
+    #F
+    text = font.render(arr[3], True, (255, 255, 255), (159, 182, 205))
+    screen.blit(text, (cx,10))
+    #RF
+    text = font.render(arr[4], True, (255, 255, 255), (159, 182, 205))
+    screen.blit(text, (cx*2,10))
+    #LB
+    text = font.render(arr[5], True, (255, 255, 255), (159, 182, 205))
+    screen.blit(text, (10,cy*2))
+    #B
+    text = font.render(arr[6], True, (255, 255, 255), (159, 182, 205))
+    screen.blit(text, (cx,cy*2))
+    #RB
+    text = font.render(arr[7], True, (255, 255, 255), (159, 182, 205))
+    screen.blit(text, (cx*2,cy*2))
+
     pygame.display.update()
 
 def ReadFromSerial(ser):

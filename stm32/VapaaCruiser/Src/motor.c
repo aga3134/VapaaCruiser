@@ -14,6 +14,7 @@
 extern TIM_HandleTypeDef htim8;
 float g_TargetForward = 0, g_TargetTurn = 0;
 uint8_t g_IsStart = 0;
+uint32_t g_UpdateCountAfterCmd = 0;
 
 void StartMotor(){
 	HAL_TIM_PWM_Start(&htim8,TIM_CHANNEL_1);
@@ -39,6 +40,7 @@ void SetMotorSpeed(float forward, float turn){
 	if(g_IsStart == 0) StartMotor();
 	g_TargetForward = forward;
 	g_TargetTurn = turn;
+	g_UpdateCountAfterCmd = 0;
 }
 
 void UpdateMotorSpeed(){
@@ -53,6 +55,11 @@ void UpdateMotorSpeed(){
 	//計算要輸出的pulse
 	pwmF = minPulseF+(maxPulseF-minPulseF)*(g_TargetForward+1)*0.5f;
 	pwmT = minPulseT+(maxPulseT-minPulseT)*(g_TargetTurn+1)*0.5f;
+	
+	//若超過一定update次數都沒收到指令，就停止動作
+	if(g_UpdateCountAfterCmd++ > 30){
+		StopMotor();
+	}
 	
 	//為了讓電變產生後退需double click
 	if(g_TargetForward > -0.05f && g_TargetForward < 0.05f){

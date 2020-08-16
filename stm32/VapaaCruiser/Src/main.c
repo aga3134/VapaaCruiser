@@ -62,11 +62,11 @@ unsigned char g_Update = 0;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -120,22 +120,33 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM8_Init();
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 	
-	UltrasoundInstance usF = {0};
+	UltrasoundInstance usLF = {0}, usF = {0}, usRF = {0};
+	UltrasoundInstance usLB = {0}, usB = {0}, usRB = {0};
+	usLF.dir = US_LF;
 	usF.dir = US_F;
+	usRF.dir = US_RF;
+	usLB.dir = US_LB;
+	usB.dir = US_B;
+	usRB.dir = US_RB;
+	StartUltrasound(&usLF);
 	StartUltrasound(&usF);
+	StartUltrasound(&usRF);
+	StartUltrasound(&usLB);
+	StartUltrasound(&usB);
+	StartUltrasound(&usRB);
 	
 	StartGPSReceive();
 	StartCommandReceive();
 	
 	//update in every 30ms
-	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_TIM_Base_Start_IT(&htim3);
 	
   /* USER CODE END 2 */
 
@@ -253,6 +264,10 @@ static void MX_TIM2_Init(void)
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
   sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
@@ -324,10 +339,6 @@ static void MX_TIM3_Init(void)
     Error_Handler();
   }
   if (HAL_TIM_IC_ConfigChannel(&htim3, &sConfigIC, TIM_CHANNEL_3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_IC_ConfigChannel(&htim3, &sConfigIC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
   }
@@ -492,29 +503,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, US_LF_Trigger_Pin|US_RF_Trigger_Pin|US_LB_Trigger_Pin|US_RB_Trigger_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(US_Trigger_GPIO_Port, US_Trigger_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, US_F_Trigger_Pin|US_B_Trigger_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pins : US_LF_Trigger_Pin US_RF_Trigger_Pin US_LB_Trigger_Pin US_RB_Trigger_Pin */
-  GPIO_InitStruct.Pin = US_LF_Trigger_Pin|US_RF_Trigger_Pin|US_LB_Trigger_Pin|US_RB_Trigger_Pin;
+  /*Configure GPIO pin : US_Trigger_Pin */
+  GPIO_InitStruct.Pin = US_Trigger_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : US_F_Trigger_Pin US_B_Trigger_Pin */
-  GPIO_InitStruct.Pin = US_F_Trigger_Pin|US_B_Trigger_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(US_Trigger_GPIO_Port, &GPIO_InitStruct);
 
 }
 

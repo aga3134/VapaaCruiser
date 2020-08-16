@@ -60,29 +60,17 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define US_LF_Trigger_Pin GPIO_PIN_0
-#define US_LF_Trigger_GPIO_Port GPIOC
-#define US_RF_Trigger_Pin GPIO_PIN_1
-#define US_RF_Trigger_GPIO_Port GPIOC
-#define US_LB_Trigger_Pin GPIO_PIN_2
-#define US_LB_Trigger_GPIO_Port GPIOC
-#define US_RB_Trigger_Pin GPIO_PIN_3
-#define US_RB_Trigger_GPIO_Port GPIOC
-#define US_F_Trigger_Pin GPIO_PIN_1
-#define US_F_Trigger_GPIO_Port GPIOA
-#define US_B_Trigger_Pin GPIO_PIN_2
-#define US_B_Trigger_GPIO_Port GPIOA
-#define US_F_Receive_Pin GPIO_PIN_6
-#define US_F_Receive_GPIO_Port GPIOA
-#define US_B_Receive_Pin GPIO_PIN_7
+#define US_LB_Receive_Pin GPIO_PIN_1
+#define US_LB_Receive_GPIO_Port GPIOA
+#define US_B_Receive_Pin GPIO_PIN_2
 #define US_B_Receive_GPIO_Port GPIOA
-#define US_LB_Receive_Pin GPIO_PIN_0
-#define US_LB_Receive_GPIO_Port GPIOB
-#define US_RB_Receive_Pin GPIO_PIN_1
-#define US_RB_Receive_GPIO_Port GPIOB
-#define US_LF_Receive_Pin GPIO_PIN_10
-#define US_LF_Receive_GPIO_Port GPIOB
-#define US_RF_Receive_Pin GPIO_PIN_11
+#define US_RB_Receive_Pin GPIO_PIN_3
+#define US_RB_Receive_GPIO_Port GPIOA
+#define US_LF_Receive_Pin GPIO_PIN_6
+#define US_LF_Receive_GPIO_Port GPIOA
+#define US_F_Receive_Pin GPIO_PIN_7
+#define US_F_Receive_GPIO_Port GPIOA
+#define US_RF_Receive_Pin GPIO_PIN_0
 #define US_RF_Receive_GPIO_Port GPIOB
 #define Motor_Forward_Pin GPIO_PIN_6
 #define Motor_Forward_GPIO_Port GPIOC
@@ -96,6 +84,8 @@ void Error_Handler(void);
 #define GPS_TX_GPIO_Port GPIOC
 #define GPS_RX_Pin GPIO_PIN_11
 #define GPS_RX_GPIO_Port GPIOC
+#define US_Trigger_Pin GPIO_PIN_3
+#define US_Trigger_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

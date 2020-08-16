@@ -34,9 +34,10 @@ void StopCommandReceive(){
 }
 
 void ReceiveCommand(UART_HandleTypeDef *UartHandle){
+	HAL_UART_Receive_IT(&huart1,&g_CmdInData,1);
+	
 	if(UartHandle->Instance != USART1) return;
   FIFOBufferPutData(&g_CmdRxBuffer,&g_CmdInData,1);
-	HAL_UART_Receive_IT(&huart1,&g_CmdInData,1);
 	//echo¦^¥h
 	//HAL_UART_Transmit_IT(&huart1, &g_InData,1);
 }

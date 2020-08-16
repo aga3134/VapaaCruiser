@@ -208,13 +208,13 @@ void ProcessGPS(){
 }
 
 void ReceiveGPSInfo(UART_HandleTypeDef *UartHandle){
-	if(UartHandle->Instance != USART3) return;
-	//將讀到的資料存到gps buffer
-	FIFOBufferPutData(&g_GPSBuffer,&g_GPSInData,1);
-	
 	//繼續等下一筆資料
 	HAL_UART_Receive_IT(&huart3,&g_GPSInData,1);
 	
+	if(UartHandle->Instance != USART3) return;
+	//將讀到的資料存到gps buffer
+	FIFOBufferPutData(&g_GPSBuffer,&g_GPSInData,1);
+
 	//echo回去
 	//HAL_UART_Transmit_IT(&huart1, &g_InData,1);
 }
