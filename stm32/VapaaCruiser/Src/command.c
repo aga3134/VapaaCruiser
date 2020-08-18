@@ -3,8 +3,9 @@
 #include "FIFOBuffer.h"
 
 extern UART_HandleTypeDef huart1;
-FIFOBufferInstance g_CmdRxBuffer;
+static FIFOBufferInstance g_CmdRxBuffer;
 static unsigned char g_CmdInData;
+static unsigned char g_CmdStart = 0;
 
 enum ParseState{
 	HEADER,
@@ -27,15 +28,16 @@ typedef struct{
 
 void StartCommandReceive(){
 	HAL_UART_Receive_IT(&huart1,&g_CmdInData,1);
+	g_CmdStart = 1;
 }
 
 void StopCommandReceive(){
 	HAL_UART_AbortReceive_IT(&huart1);
+	g_CmdStart = 0;
 }
 
 void ReceiveCommand(UART_HandleTypeDef *UartHandle){
 	HAL_UART_Receive_IT(&huart1,&g_CmdInData,1);
-	
 	if(UartHandle->Instance != USART1) return;
   FIFOBufferPutData(&g_CmdRxBuffer,&g_CmdInData,1);
 	//echo回去
@@ -107,6 +109,11 @@ unsigned char ParseCommand(){
 	}
 	//清掉command及之前的資料
 	FIFOBufferClear(&g_CmdRxBuffer,end);
+	
+	//有時候接收會斷掉，這邊定時重啟接收
+	if(g_CmdStart){
+		HAL_UART_Receive_IT(&huart1,&g_CmdInData,1);
+	}
 	
 	if(state == CHECKSUM){	//已讀到完整command
 		if(valid){	//checksum檢驗ok

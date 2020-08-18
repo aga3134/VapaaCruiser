@@ -159,10 +159,10 @@ int main(void)
     /* USER CODE BEGIN 3 */
 		
 		//若uart出錯變reset就重新init
-		if(huart1.gState == HAL_UART_STATE_RESET){
+		if(huart1.gState == HAL_UART_STATE_RESET || huart1.RxState == HAL_UART_STATE_RESET){
 			MX_USART1_UART_Init();
 		}
-		if(huart3.gState == HAL_UART_STATE_RESET){
+		if(huart3.gState == HAL_UART_STATE_RESET || huart3.RxState == HAL_UART_STATE_RESET){
 			MX_USART3_UART_Init();
 		}
 		

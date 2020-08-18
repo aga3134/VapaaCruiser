@@ -33,10 +33,11 @@ typedef struct{
 }GPGGA_t;
 
 
+extern UART_HandleTypeDef huart3;
 static FIFOBufferInstance g_GPSBuffer;
 static GPGGA_t g_GPSInfo;
+static unsigned char g_GPSStart = 0;
 
-extern UART_HandleTypeDef huart3;
 
 enum MessageType{
 	GNGGA,
@@ -48,10 +49,12 @@ static unsigned char g_GPSInData;
 
 void StartGPSReceive(){
 	HAL_UART_Receive_IT(&huart3,&g_GPSInData,1);
+	g_GPSStart = 1;
 }
 
 void StopGPSReceive(){
 	HAL_UART_AbortReceive_IT(&huart3);
+	g_GPSStart = 0;
 }
 
 
@@ -204,17 +207,22 @@ void ProcessGPS(){
 	if(processed > 0){
 		FIFOBufferClear(&g_GPSBuffer,processed);
 	}
+	
+	//有時候接收會斷掉，這邊定時重啟接收
+	if(g_GPSStart){
+		HAL_UART_Receive_IT(&huart3,&g_GPSInData,1);
+	}
 
 }
 
 void ReceiveGPSInfo(UART_HandleTypeDef *UartHandle){
 	//繼續等下一筆資料
 	HAL_UART_Receive_IT(&huart3,&g_GPSInData,1);
-	
+
 	if(UartHandle->Instance != USART3) return;
 	//將讀到的資料存到gps buffer
 	FIFOBufferPutData(&g_GPSBuffer,&g_GPSInData,1);
-
+	
 	//echo回去
 	//HAL_UART_Transmit_IT(&huart1, &g_InData,1);
 }
