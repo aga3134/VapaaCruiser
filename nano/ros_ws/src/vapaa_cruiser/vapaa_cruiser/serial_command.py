@@ -20,8 +20,8 @@ class SerialCommand(Node):
         self.state = "FORWARD"
         self.stateTime = 0
         self.ser = serial.Serial(self.port, self.baud)
-        self.pub = self.create_publisher(String, "car_state", 10)
-        self.sub = self.create_subscription(Twist,'car_cmd',self.ReceiveCmd,10)
+        self.pub = self.create_publisher(String, "car_state", 1)
+        self.sub = self.create_subscription(Twist,'car_cmd',self.ReceiveCmd,1)
 
     def ReceiveCmd(self,cmd):
         curForward = cmd.linear.x
@@ -35,7 +35,6 @@ class SerialCommand(Node):
             curTurn = 1
         if curTurn < -1:
             curTurn = -1
-        self.get_logger().info("forward: %f, turn: %f" % (curForward,curTurn))
         
         #simulate double click
         if self.state == "FORWARD":
@@ -48,7 +47,7 @@ class SerialCommand(Node):
             else:
                 t = time.time()
                 if t - self.stateTime > 0.7:
-                    self.get_logger().info("stateTime: %f" % (t-self.stateTime))
+                    #self.get_logger().info("stateTime: %f" % (t-self.stateTime))
                     self.state = "BACKWARD_PAUSE"
                     self.stateTime = t
         elif self.state == "BACKWARD_PAUSE":
@@ -64,13 +63,14 @@ class SerialCommand(Node):
         elif self.state == "BACKWOARD_CLICK2":
             if curForward > 0: #車有前進才換到forward，不然留在此state
                 self.state = "FORWARD"
-            elif curForward < -0.4: #要做到double click的後退訊號會讓車子倒衝太快，這邊把最高速度降低
-                curForward = -0.4
+            elif curForward < -0.05: #要做到double click的後退訊號會讓車子倒衝太快，這邊把最高速度降低
+                curForward = -0.05
 
         forward = curForward
         if self.state == "BACKWARD_PAUSE":
             forward = 0
 
+        self.get_logger().info("forward: %f, turn: %f" % (forward,curTurn))
         #send command
         header = 0xFE
         cmd = 0x01
@@ -78,13 +78,14 @@ class SerialCommand(Node):
         forward = int((forward+1)*0.5*255)
         turn = int((curTurn+1)*0.5*255)
         msg = [header,cmd,argNum,forward,turn]
-
+        
         #compute checksum
         checksum = 0
         for ch in msg:
             checksum += ch
         checksum = checksum%256
         msg.append(checksum)
+        #self.get_logger().info("%x %x %x %x %x %x" % (msg[0],msg[1],msg[2],msg[3],msg[4],msg[5]))
         self.ser.write(bytearray(msg))
 
 
