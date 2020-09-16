@@ -58,7 +58,7 @@ class SerialCommand(Node):
                 if t - self.stateTime > 0.4:
                     self.state = "BACKWOARD_CLICK2"
                     #讓車子從低速開始倒退，避免瞬間加速過大
-                    curForward = -0.1
+                    curForward = -0.01
                     
         elif self.state == "BACKWOARD_CLICK2":
             if curForward > 0: #車有前進才換到forward，不然留在此state
@@ -70,7 +70,7 @@ class SerialCommand(Node):
         if self.state == "BACKWARD_PAUSE":
             forward = 0
 
-        self.get_logger().info("forward: %f, turn: %f" % (forward,curTurn))
+        #self.get_logger().info("forward: %f, turn: %f" % (forward,curTurn))
         #send command
         header = 0xFE
         cmd = 0x01
