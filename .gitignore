@@ -2,3 +2,6 @@ stm32/VapaaCruiser/MDK-ARM/JLinkLog.txt
 stm32/VapaaCruiser/MDK-ARM/VapaaCruiser.uvguix.aga
 stm32/VapaaCruiser/MDK-ARM/VapaaCruiser.uvoptx
 stm32/VapaaCruiser/MDK-ARM/VapaaCruiser/
+nano/ros_ws/build/
+nano/ros_ws/install/
+nano/ros_ws/log/
