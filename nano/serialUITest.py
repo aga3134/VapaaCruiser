@@ -5,7 +5,7 @@ from time import sleep
 import time
 import threading
 
-COM_PORT = "COM5"
+COM_PORT = "COM3"
 BAUD_RATES = 115200
 ser = serial.Serial(COM_PORT, BAUD_RATES)
 done = False
