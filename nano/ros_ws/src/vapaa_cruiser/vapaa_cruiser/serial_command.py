@@ -58,13 +58,13 @@ class SerialCommand(Node):
                 if t - self.stateTime > 0.4:
                     self.state = "BACKWOARD_CLICK2"
                     #讓車子從低速開始倒退，避免瞬間加速過大
-                    curForward = -0.01
+                    curForward = -0.1
                     
         elif self.state == "BACKWOARD_CLICK2":
             if curForward > 0: #車有前進才換到forward，不然留在此state
                 self.state = "FORWARD"
-            elif curForward < -0.05: #要做到double click的後退訊號會讓車子倒衝太快，這邊把最高速度降低
-                curForward = -0.05
+            elif curForward < -0.8: #要做到double click的後退訊號會讓車子倒衝太快，這邊把最高速度降低
+                curForward = -0.8
 
         forward = curForward
         if self.state == "BACKWARD_PAUSE":

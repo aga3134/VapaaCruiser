@@ -6,8 +6,8 @@
 //為避免爆衝，再用MAX_FORWARD,MIN_FORWARD,MAX_TURN,MIN_TURN限制輸出%
 #define MIN_PULSE 544
 #define MAX_PULSE 2400
-#define MAX_FORWARD 0.555
-#define MIN_FORWARD 0.442
+#define MAX_FORWARD 0.58
+#define MIN_FORWARD 0.42
 #define MAX_TURN 0.8
 #define MIN_TURN 0.4
 

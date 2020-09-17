@@ -5,7 +5,7 @@ from time import sleep
 import time
 import threading
 
-COM_PORT = "/dev/ttyUSB0"
+COM_PORT = "COM8"
 BAUD_RATES = 115200
 ser = serial.Serial(COM_PORT, BAUD_RATES)
 done = False
@@ -131,8 +131,8 @@ if __name__ == "__main__":
         elif state == "BACKWOARD_CLICK2":
             if curForward > 0: #車有前進才換到forward，不然留在此state
                 state = "FORWARD"
-            elif curForward < -0.4: #要做到double click的後退訊號會讓車子倒衝太快，這邊把最高速度降低
-                curForward = -0.4
+            elif curForward < -0.8: #要做到double click的後退訊號會讓車子倒衝太快，這邊把最高速度降低
+                curForward = -0.8
 
         forward = curForward
         if state == "BACKWARD_PAUSE":
