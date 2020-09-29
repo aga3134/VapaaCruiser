@@ -24,7 +24,8 @@ setup(
     entry_points={
         'console_scripts': [
             "serial_command=vapaa_cruiser.serial_command:main",
-             "joy_control=vapaa_cruiser.joy_control:main",
+            "joy_control=vapaa_cruiser.joy_control:main",
+            "cam_capture=vapaa_cruiser.cam_capture:main",
         ],
     },
 )
