@@ -1,0 +1,6 @@
+<launch>
+    <node name="joy_node" pkg="joy" type="joy_node"/>
+    <node name="joy_control_node" pkg="vapaa_cruiser" type="joy_control_node.py" output="screen">
+        <param name="updateRate" value="30"/>
+    </node>
+</launch>

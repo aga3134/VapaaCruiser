@@ -1,27 +1,24 @@
-import rclpy
-from rclpy.node import Node
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import rospy
 import serial
 import threading
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
-from rclpy.parameter import Parameter
 import time
 
-class SerialCommand(Node):
+class SerialCommand():
     def __init__(self):
-        super().__init__('serial_command')
-        self.declare_parameter("port")
-        self.declare_parameter("baud",115200)
-        self.port = Parameter("port", Parameter.Type.STRING, "/dev/ttyUSB0").value
-        self.baud = Parameter("baud", Parameter.Type.INTEGER, 115200).value
+        self.port = rospy.get_param("~port","/dev/ttyUSB0")
+        self.baud = rospy.get_param("~rightRatio",115200)
 
-        self.get_logger().info("using port: %s, baud rate: %d" % (self.port,self.baud))
-        
+        rospy.loginfo("use port=%s baud=%d" % (self.port,self.baud))
+
         self.state = "FORWARD"
         self.stateTime = 0
         self.ser = serial.Serial(self.port, self.baud)
-        self.pub = self.create_publisher(String, "car_state", 1)
-        self.sub = self.create_subscription(Twist,'car_cmd',self.ReceiveCmd,1)
+        self.pub = rospy.Publisher("car_state", String,  queue_size=1)
+        self.sub = rospy.Subscriber("car_cmd", Twist, self.ReceiveCmd)
 
     def ReceiveCmd(self,cmd):
         curForward = cmd.linear.x
@@ -47,7 +44,7 @@ class SerialCommand(Node):
             else:
                 t = time.time()
                 if t - self.stateTime > 0.7:
-                    #self.get_logger().info("stateTime: %f" % (t-self.stateTime))
+                    #rospy.loginfo("stateTime: %f" % (t-self.stateTime))
                     self.state = "BACKWARD_PAUSE"
                     self.stateTime = t
         elif self.state == "BACKWARD_PAUSE":
@@ -70,7 +67,7 @@ class SerialCommand(Node):
         if self.state == "BACKWARD_PAUSE":
             forward = 0
 
-        #self.get_logger().info("forward: %f, turn: %f" % (forward,curTurn))
+        #rospy.loginfo("forward: %f, turn: %f" % (forward,curTurn))
         #send command
         header = 0xFE
         cmd = 0x01
@@ -85,7 +82,7 @@ class SerialCommand(Node):
             checksum += ch
         checksum = checksum%256
         msg.append(checksum)
-        #self.get_logger().info("%x %x %x %x %x %x" % (msg[0],msg[1],msg[2],msg[3],msg[4],msg[5]))
+        #rospy.loginfo("%x %x %x %x %x %x" % (msg[0],msg[1],msg[2],msg[3],msg[4],msg[5]))
         self.ser.write(bytearray(msg))
 
 
@@ -95,25 +92,21 @@ class SerialCommand(Node):
         self.pub.publish(msg)
 
     def ReadFromSerial(self):
-       while rclpy.ok():
+       while not rospy.is_shutdown():
             while self.ser.in_waiting:
                 try:
                     msg = self.ser.readline().decode()  # 接收回應訊息並解碼
                     self.ReceiveState(msg)
                 except:
-                    self.get_logger().info("serial invalid message")
+                    rospy.loginfo("serial invalid message")
 
-def main(args=None):
-    rclpy.init(args=args)
+
+if __name__ == '__main__':
+    rospy.init_node('serial_command_node')
+    rospy.loginfo("serial_command_node started")
     sc = SerialCommand()
     #use a separate thread to read data from serial
     thread = threading.Thread(target=sc.ReadFromSerial)
     thread.start()
     
-    rclpy.spin(sc)
-
-    sc.destroy_node()
-    rclpy.shutdown()
-
-if __name__  ==  "__main__":
-    main()
+    rospy.spin()
