@@ -4,8 +4,7 @@
         <param name="width" value="640"/>
         <param name="height" value="480"/>
         <param name="rate" value="30"/>
-        <param name="flipH" value="False"/>
-        <param name="flipV" value="False"/>
+        <param name="flipMode" value="0"/>
     </node>
     <node name="serial_command_node" pkg="vapaa_cruiser" type="serial_command_node.py" output="screen">
         <param name="port" value="/dev/ttyUSB0"/>
