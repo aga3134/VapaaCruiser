@@ -33,7 +33,7 @@ class JoyControl():
 
 
 if __name__ == '__main__':
-    rospy.init_node('joy_mapper_node')
-    rospy.loginfo("joy_mapper_node started")
+    rospy.init_node('joy_control_node')
+    rospy.loginfo("joy_control_node started")
     jc = JoyControl()
     jc.Run()
