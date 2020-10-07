@@ -4,3 +4,4 @@ stm32/VapaaCruiser/MDK-ARM/VapaaCruiser.uvoptx
 stm32/VapaaCruiser/MDK-ARM/VapaaCruiser/
 nano/ros_ws/build/
 nano/ros_ws/devel/
+*.pyc

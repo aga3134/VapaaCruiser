@@ -11,4 +11,5 @@ app = Flask(__name__)
 def home():
     return render_template("index.html",config=config)
 
-app.run( port=config["web"]["port"])
+if __name__ == "__main__":
+    app.run( port=config["web"]["port"])

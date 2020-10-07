@@ -1,7 +1,8 @@
 var app = new Vue({
     el: '#app',
     data: {
-        status: ""
+        status: "",
+        tab: "status"
     },
     delimiters: ['[[',']]'],    //vue跟jinja的語法會衝突
     created: function(){
@@ -21,7 +22,7 @@ var app = new Vue({
             }.bind(this));
         
             ros.on('error', function(error) {
-                this.status = err;
+                this.status = error;
             }.bind(this));
         
             ros.on('close', function() {
