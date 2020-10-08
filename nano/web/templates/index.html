@@ -8,6 +8,7 @@
         <title>{{config.web.title}}</title>
         <link rel="icon" href="static/image/logo.png">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css" rel="stylesheet" type="text/css">
         <link href="static/scss/main.css?v={{config.version}}" rel="stylesheet" type="text/css">
     </head>
     <body>
@@ -16,21 +17,25 @@
                 <img class="icon" src="static/image/logo.png">
                 <div class="title">田間巡航艦</div>
             </div>
+            
             <div class="container p-3 text-center">
                 <div class="row">
                     <div class="col-sm">
-                        <div class="card">
-                            <img class="img-fluid" src="static/image/logo.png">
-                            <div class="card-body">
-                                <div class="card-title">位置</div>
+                        <div class="card h-100">
+                            <div class="map-container">
+                                <div class="map" id="map"></div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="card-title">路徑</div>
                             </div>
                         </div>
+                        
                     </div>
                     
                     <div class="col-sm">
-                        <div class="card">
-                            <img class="img-fluid" src="static/image/logo.png">
-                            <div class="card-body">
+                        <div class="card h-100">
+                            <img class="card-img-top" :src="imageData.frontRGB">
+                            <div class="card-footer">
                                 <div class="card-title">前鏡頭</div>
                             </div>
                         </div>
@@ -39,18 +44,18 @@
                     <div class="w-100 mb-3"></div>
 
                     <div class="col-sm">
-                        <div class="card">
-                            <img class="img-fluid" src="static/image/logo.png">
-                            <div class="card-body">
+                        <div class="card h-100">
+                            <img class="card-img-top" :src="imageData.sideRGB">
+                            <div class="card-footer">
                                 <div class="card-title">側鏡頭</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-sm">
-                        <div class="card">
-                            <img class="img-fluid" src="static/image/logo.png">
-                            <div class="card-body">
+                        <div class="card h-100">
+                            <img class="card-img-top" :src="imageData.frontDepth">
+                            <div class="card-footer">
                                 <div class="card-title">深度影像</div>
                             </div>
                         </div>
@@ -66,10 +71,11 @@
         <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
-        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js"></script>
+
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-        <script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
-        <script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+        <script src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+        <script src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
         <script src="static/js/main.js?v={{config.version}}"></script>
     </body>
 </html>

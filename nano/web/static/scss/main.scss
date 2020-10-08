@@ -30,6 +30,18 @@ html, body{
             font-size: 1.2em;
         }
     }
+    .img-contain{
+        object-fit: contain;
+    }
+    .map-container{
+        width: 100%;
+        height: 100%;
+        position: relative;
+        .map{
+            width:100%;
+            height: 100%;
+        }
+    }
     .action-bar{
         position: fixed;
         width: 100%;
