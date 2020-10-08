@@ -43,9 +43,10 @@ html, body {
   font-size: 1.2em;
 }
 
-.vapaa-cruiser .img-contain {
-  -o-object-fit: contain;
-     object-fit: contain;
+.vapaa-cruiser .spacer {
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
 }
 
 .vapaa-cruiser .map-container {
@@ -59,6 +60,12 @@ html, body {
   height: 100%;
 }
 
+.vapaa-cruiser .map-container .map::after {
+  content: "";
+  display: block;
+  padding-bottom: 75%;
+}
+
 .vapaa-cruiser .action-bar {
   position: fixed;
   width: 100%;
@@ -66,5 +73,14 @@ html, body {
   left: 0px;
   bottom: 0px;
   background-color: #555555;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
 }
 /*# sourceMappingURL=main.css.map */
