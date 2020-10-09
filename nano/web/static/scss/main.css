@@ -83,4 +83,63 @@ html, body {
       -ms-flex-align: center;
           align-items: center;
 }
+
+.vapaa-cruiser .bottom-panel {
+  position: fixed;
+  bottom: -200px;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
+  width: 500px;
+  max-width: 100%;
+  height: 200px;
+  background-color: #eeeeee;
+  border-radius: 10px 10px 0px 0px;
+  -webkit-box-shadow: 0px 5px 10px #333333;
+          box-shadow: 0px 5px 10px #333333;
+  -webkit-transition: bottom .5s;
+  transition: bottom .5s;
+}
+
+.vapaa-cruiser .bottom-panel.open {
+  bottom: 0px;
+}
+
+.vapaa-cruiser .bottom-panel .close-bt {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  font-size: 1.5em;
+}
+
+.vapaa-cruiser .bottom-panel .close-bt::after {
+  font-family: "Material Icons";
+  content: "close";
+  -webkit-font-feature-settings: 'liga';
+}
+
+.vapaa-cruiser .modal-panel {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(50, 50, 50, 0.8);
+  padding: 10px;
+  z-index: 1000;
+}
+
+.vapaa-cruiser .modal-panel .content-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translateX(-50%) translateY(-50%);
+          transform: translateX(-50%) translateY(-50%);
+  width: 600px;
+  height: 400px;
+  max-height: 100%;
+  max-width: 100%;
+  background-color: #eeeeee;
+  border-radius: 10px;
+}
 /*# sourceMappingURL=main.css.map */

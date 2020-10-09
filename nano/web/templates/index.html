@@ -9,6 +9,7 @@
         <link rel="icon" href="static/image/logo.png">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link href="static/scss/main.css?v={{config.version}}" rel="stylesheet" type="text/css">
     </head>
     <body>
@@ -57,9 +58,23 @@
                 </div>
             </div>
             <div class="action-bar">
-                <button type="button" class="btn btn-dark mx-2" class="{active: action=='manual'}" @click="ChangeAction('manual');">手動巡航</button>
+                <button type="button" class="btn btn-dark mx-2" :class="{active: action=='manual'}" @click="ChangeAction('manual');">手動巡航</button>
                 <button type="button" class="btn btn-dark mx-2" :class="{active: action=='follow'}" @click="ChangeAction('follow');">跟隨模式</button>
                 <button type="button" class="btn btn-dark mx-2" :class="{active: action=='auto'}" @click="ChangeAction('auto');">自動巡航</button>
+            </div>
+
+            <div class="bottom-panel" :class="{open: action=='manual' }">
+                <div class="close-bt" @click="ChangeAction('');"></div>
+            </div>
+
+            <div class="bottom-panel" :class="{open: action=='follow' }">
+                <div class="btn" @click="ChangeAction('');">結束跟隨</div>
+            </div>
+
+            <div class="modal-panel" v-show="action=='auto' ">
+                <div class="content-container">
+                    <div class="btn" @click="ChangeAction('');">關閉</div>
+                </div>
             </div>
         </div>
 
