@@ -64,7 +64,28 @@
             </div>
 
             <div class="bottom-panel" :class="{open: action=='manual' }">
-                <div class="close-bt" @click="ChangeAction('');"></div>
+                <div class="d-flex justify-content-around align-items-center h-100">
+                    <div class="joystick">
+                        <div class="arrow-up"></div>
+                        <div class="arrow-down"></div>
+                        <div class="arrow-left"></div>
+                        <div class="arrow-right"></div>
+                        <div class="circle-center"></div>
+                    </div>
+                    
+                    <div class="d-flex flex-column">
+                        <div class="btn btn-dark m-2">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons">place</span> 新增定位點
+                            </div>
+                        </div>
+                        <div class="btn btn-dark m-2" @click="ChangeAction('');">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons">close</span> 結束巡航
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="bottom-panel" :class="{open: action=='follow' }">

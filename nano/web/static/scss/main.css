@@ -105,17 +105,100 @@ html, body {
   bottom: 0px;
 }
 
-.vapaa-cruiser .bottom-panel .close-bt {
-  position: absolute;
-  top: 5px;
-  right: 10px;
-  font-size: 1.5em;
+.vapaa-cruiser .bottom-panel .joystick {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background-color: #333333;
 }
 
-.vapaa-cruiser .bottom-panel .close-bt::after {
+.vapaa-cruiser .bottom-panel .joystick .arrow-up {
+  position: absolute;
+  color: #ffffff;
+  font-size: 1.5em;
+  top: 0px;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-up::after {
   font-family: "Material Icons";
-  content: "close";
   -webkit-font-feature-settings: 'liga';
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-up::after {
+  content: "keyboard_arrow_up";
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-down {
+  position: absolute;
+  color: #ffffff;
+  font-size: 1.5em;
+  bottom: 0px;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-down::after {
+  font-family: "Material Icons";
+  -webkit-font-feature-settings: 'liga';
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-down::after {
+  content: "keyboard_arrow_down";
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-left {
+  position: absolute;
+  color: #ffffff;
+  font-size: 1.5em;
+  top: 50%;
+  left: 0px;
+  -webkit-transform: translateY(-50%);
+          transform: translateY(-50%);
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-left::after {
+  font-family: "Material Icons";
+  -webkit-font-feature-settings: 'liga';
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-left::after {
+  content: "keyboard_arrow_left";
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-right {
+  position: absolute;
+  color: #ffffff;
+  font-size: 1.5em;
+  top: 50%;
+  right: 0px;
+  -webkit-transform: translateY(-50%);
+          transform: translateY(-50%);
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-right::after {
+  font-family: "Material Icons";
+  -webkit-font-feature-settings: 'liga';
+}
+
+.vapaa-cruiser .bottom-panel .joystick .arrow-right::after {
+  content: "keyboard_arrow_right";
+}
+
+.vapaa-cruiser .bottom-panel .joystick .circle-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translateX(-50%) translateY(-50%);
+          transform: translateX(-50%) translateY(-50%);
+  width: 40%;
+  height: 40%;
+  background-color: #888888;
+  border-radius: 50%;
 }
 
 .vapaa-cruiser .modal-panel {
