@@ -2,6 +2,7 @@ var app = new Vue({
     el: '#app',
     data: {
         connectState: "",
+        action: "",
         status:  {
             pos: {lat: null, lng: null},
             usFL:-1, usF:-1, usFR:-1,
@@ -108,10 +109,16 @@ var app = new Vue({
                 this.trajectory.map = L.map("map").setView([23.682094, 120.7764642], 7);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '<a href="https://www.openstreetmap.org/">OSM</a>',
-                    maxZoom: 22,
+                    maxZoom: 19,
                 }).addTo(this.trajectory.map);
             }.bind(this));
             
+        },
+        Logout: function(){
+            window.location.href="/logout";
+        },
+        ChangeAction: function(action){
+            this.action = action;
         }
     }
 });

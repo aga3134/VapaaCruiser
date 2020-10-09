@@ -17,7 +17,7 @@
                 <img class="icon" src="static/image/logo.png">
                 <div class="title">田間巡航艦</div>
                 <div class="spacer"></div>
-                <button type="button" class="btn btn-dark mx-2">設定</button>
+                <button type="button" class="btn btn-dark mx-2" @click="Logout();">設定</button>
             </div>
             
             <div class="container-fluid p-3 text-center">
@@ -57,9 +57,9 @@
                 </div>
             </div>
             <div class="action-bar">
-                <button type="button" class="btn btn-dark mx-2">手動巡航</button>
-                <button type="button" class="btn btn-dark mx-2">跟隨模式</button>
-                <button type="button" class="btn btn-dark mx-2">自動巡航</button>
+                <button type="button" class="btn btn-dark mx-2" class="{active: action=='manual'}" @click="ChangeAction('manual');">手動巡航</button>
+                <button type="button" class="btn btn-dark mx-2" :class="{active: action=='follow'}" @click="ChangeAction('follow');">跟隨模式</button>
+                <button type="button" class="btn btn-dark mx-2" :class="{active: action=='auto'}" @click="ChangeAction('auto');">自動巡航</button>
             </div>
         </div>
 

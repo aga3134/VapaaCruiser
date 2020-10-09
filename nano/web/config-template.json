@@ -1,0 +1,16 @@
+{
+    "web": {
+        "title": "VapaaCruiser",
+    },
+    "ws":{
+        "host":"YOUR_JETSON_NANO_IP",
+        "port":9090
+    },
+    "sessionKey": "YOUR_SECRET_SESSION_KEY",
+    "login":{
+        "username":"YOUR_LOGIN_USERNAME",
+        "password":"YOUR_LOGIN_PASSWORK"
+    },
+    "version": "1.0.0",
+    "mode": "production"
+}
