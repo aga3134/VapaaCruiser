@@ -63,14 +63,15 @@
                 <button type="button" class="btn btn-dark mx-2" :class="{active: action=='auto'}" @click="ChangeAction('auto');">自動巡航</button>
             </div>
 
-            <div class="bottom-panel" :class="{open: action=='manual' }">
+            <div class="bottom-panel" :class="{open: action=='manual' }" v-touch:end="StopJoystick" v-touch:moving="MoveJoystick">
                 <div class="d-flex justify-content-around align-items-center h-100">
-                    <div class="joystick">
+                    <div id="joystick" class="joystick" v-touch:start="StartJoystick">
                         <div class="arrow-up"></div>
                         <div class="arrow-down"></div>
                         <div class="arrow-left"></div>
                         <div class="arrow-right"></div>
                         <div class="circle-center"></div>
+                        <div class="touch-indicator" v-show="joystick.touch" :style="GetJoystickPos()"></div>
                     </div>
                     
                     <div class="d-flex flex-column">
@@ -97,14 +98,22 @@
                     <div class="btn" @click="ChangeAction('');">關閉</div>
                 </div>
             </div>
+
+            <div class="loading-page" v-show="loading">
+                <div class="logo-container">
+                    <img class="logo" src="static/image/logo.png">
+                    <h3 class="text-center m-2">田間巡航艦</h3>
+                </div>
+            </div>
         </div>
 
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js"></script>
 
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue2-touch-events@2.3.2/index.min.js"></script>
         <script src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
         <script src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
         <script src="static/js/main.js?v={{config.version}}"></script>

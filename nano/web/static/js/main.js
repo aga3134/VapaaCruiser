@@ -10,6 +10,7 @@ var app = new Vue({
         },
         topic: {
             carState:  {name: "/car_state", type:"std_msgs/String"},
+            carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist"},
             frontRGB:  {name: "/image/compressed", type:"sensor_msgs/CompressedImage"},
             sideRGB:  {name: "/camera/color/image_raw/compressed", type:"sensor_msgs/CompressedImage"},
             sideDepth:  {name: "/camera/aligned_depth_to_color/image_raw/compressedDepth", type:"sensor_msgs/CompressedImage"},
@@ -22,12 +23,19 @@ var app = new Vue({
         trajectory:{
             map: null,
             marker: null
-        }
+        },
+        joystick: {
+            touch: false,
+            x: 0,
+            y: 0
+        },
+        loading: true
     },
     delimiters: ['[[',']]'],    //vue跟jinja的語法會衝突
     created: function(){
         this.InitROSConnection();
         this.InitMap();
+        this.loading = false;
     },
     methods: {
         InitROSConnection: function(){
@@ -103,6 +111,28 @@ var app = new Vue({
                 this.imageData.sideDepth = "data:image/jpeg;base64,"+msg.data;
             }.bind(this));
 
+            var carCmd = new ROSLIB.Topic({
+                ros : ros,
+                name : this.topic.carCmd.name,
+                messageType : this.topic.carCmd.type
+              });
+
+            setInterval(function(){
+                if(this.action != "manual") return;
+                var forward = 0, turn = 0;
+                if(this.joystick.touch){
+                    var joystick = $("#joystick");
+                    forward = (0.5-this.joystick.y/joystick.height())*2;
+                    turn = (this.joystick.x/joystick.width()-0.5)*2;
+                }
+                var twist = new ROSLIB.Message({
+                    linear : {x : forward, y : 0, z : 0},
+                    angular : {x : 0, y : 0, z : turn}
+                  });
+                  //console.log([forward,turn]);
+                  carCmd.publish(twist);
+            }.bind(this), 30);
+            
         },
         InitMap: function(){
             Vue.nextTick(function(){
@@ -119,6 +149,42 @@ var app = new Vue({
         },
         ChangeAction: function(action){
             this.action = action;
+        },
+        StartJoystick: function(evt){
+            if(evt.type == "touchstart"){
+                evt = evt.touches[0];
+            }
+            this.joystick.x = evt.pageX-$("#joystick").offset().left;
+            this.joystick.y = evt.pageY-$("#joystick").offset().top;
+            this.joystick.touch = true;
+        },
+        StopJoystick: function(evt){
+            this.joystick.touch = false;
+        },
+        MoveJoystick: function(evt){
+            if(!this.joystick.touch) return;
+            if(evt.type == "touchstart"){
+                evt = evt.touches[0];
+            }
+            var joystick = $("#joystick");
+            var x = evt.pageX-joystick.offset().left;
+            var y = evt.pageY-joystick.offset().top;
+            var halfW = joystick.width()*0.5;
+            var halfH = joystick.height()*0.5;
+            //restrict pos in circle
+            var r = Math.sqrt((x-halfW)*(x-halfW)+(y-halfH)*(y-halfH));
+            if( r > halfW){
+                x = (x-halfW)*halfW/r+halfW;
+                y = (y-halfH)*halfH/r+halfH;
+            }
+            this.joystick.x = x;
+            this.joystick.y = y;
+        },
+        GetJoystickPos: function(){
+            var indicator = $(".touch-indicator");
+            var x = "left: "+(this.joystick.x-indicator.width()*0.5)+"px;";
+            var y = "top: "+(this.joystick.y-indicator.height()*0.5)+"px;";
+            return x+y;
         }
     }
 });
