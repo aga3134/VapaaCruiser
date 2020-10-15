@@ -32,7 +32,7 @@ while(True):
 
         pose, e0, e1 = detector.detection_pose(tag,camParam,tagSize)
         distZ = pose[2][3]
-        cv2.putText(frame, "{:.2f}".format(distZ), tuple(tag.center.astype(int)), cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 0, 255), 1, cv2.LINE_AA)
+        cv2.putText(frame, "["+str(tag.tag_id)+"]:"+"{:.2f}".format(distZ), tuple(tag.center.astype(int)), cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 0, 255), 1, cv2.LINE_AA)
 
     cv2.imshow('frame', frame)
 
