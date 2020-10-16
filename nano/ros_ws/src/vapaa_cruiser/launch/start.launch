@@ -9,6 +9,9 @@
         <param name="port" value="/dev/ttyUSB0"/>
         <param name="baud" value="115200"/>
     </node>
+    <node name="apriltag_node" pkg="vapaa_cruiser" type="apriltag_node.py" output="screen">
+        <param name="tagSize" value="30"/>
+    </node>
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="align_depth" value="true"/>
         <arg name="color_width" value="320"/>

@@ -1,7 +1,7 @@
 <launch>
     <node name="cam_capture_node" pkg="vapaa_cruiser" type="cam_capture_node.py" output="screen">
-        <param name="width" value="640"/>
-        <param name="height" value="480"/>
+        <param name="width" value="320"/>
+        <param name="height" value="240"/>
         <param name="rate" value="30"/>
         <param name="flipMode" value="0"/>
     </node>
@@ -9,8 +9,8 @@
         <param name="gridX" value="8"/>
         <param name="gridY" value="6"/>
         <param name="gridSize" value="25"/>
-        <param name="targetW" value="640"/>
-        <param name="targetH" value="480"/>
+        <param name="targetW" value="320"/>
+        <param name="targetH" value="240"/>
     </node>
     
 </launch>

@@ -29,7 +29,8 @@ class CamCalibration():
         for y in range(self.gridY):
             for x in range(self.gridX):
                 self.objPt[y*self.gridX+x] = [x*self.gridSize,y*self.gridSize,0]
-        self.frame = None
+        self.inFrame = None
+        self.outFrame = None
         self.frameReady = False
         
         self.subImage = rospy.Subscriber("image/compressed",CompressedImage,self.UpdateFrame)
@@ -40,8 +41,8 @@ class CamCalibration():
     def UpdateFrame(self,msg):  #callback裡面不要執行太花時間的功能，不然lag會一直累積
         self.frameReady = False
         try:
-            self.frame = self.br.compressed_imgmsg_to_cv2(msg, "bgr8")
-            self.frame = cv2.resize(self.frame, (self.targetW, self.targetH), interpolation=cv2.INTER_CUBIC)
+            self.inFrame = self.br.compressed_imgmsg_to_cv2(msg, "bgr8")
+            self.inFrame = cv2.resize(self.inFrame, (self.targetW, self.targetH), interpolation=cv2.INTER_CUBIC)
         except CvBridgeError as e:
             print(e)
 
@@ -84,6 +85,10 @@ class CamCalibration():
                     "data": distort.flatten().tolist()
                 },
             }
+
+            dirName = os.path.dirname(self.outputName)
+            if not os.path.exists(dirName):
+		os.makedirs(dirName)
             with open(self.outputName, "w") as f:
                 yaml.dump(output, f)
 
@@ -102,16 +107,17 @@ class CamCalibration():
         rate = rospy.Rate(self.updateRate)
         while not rospy.is_shutdown():
             if self.frameReady:
-                gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+                gray = cv2.cvtColor(self.inFrame, cv2.COLOR_BGR2GRAY)
+                self.outFrame = self.inFrame.copy()
                 ret, corners = cv2.findChessboardCorners(gray, (self.gridX,self.gridY),None)
                 
                 if ret == True:
                     self.subCorners = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),self.criteria)
-                    self.frame = cv2.drawChessboardCorners(self.frame, (self.gridX,self.gridY), self.subCorners,ret)
+                    self.outFrame = cv2.drawChessboardCorners(self.outFrame, (self.gridX,self.gridY), self.subCorners,ret)
                 else:
                     self.subCorners = None
 
-                imageMsg = self.br.cv2_to_compressed_imgmsg(self.frame)
+                imageMsg = self.br.cv2_to_compressed_imgmsg(self.outFrame)
                 self.pubImage.publish(imageMsg)
             rate.sleep() 
 
