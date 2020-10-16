@@ -6,3 +6,4 @@ nano/ros_ws/build/
 nano/ros_ws/devel/
 *.pyc
 config.json
+calibration.yml

@@ -1,0 +1,17 @@
+<launch>
+    <node name="cam_capture_node" pkg="vapaa_cruiser" type="cam_capture_node.py" output="screen">
+        <param name="camID" value="2"/>
+        <param name="width" value="640"/>
+        <param name="height" value="480"/>
+        <param name="rate" value="30"/>
+        <param name="flipMode" value="0"/>
+    </node>
+    <node name="cam_calibration_node" pkg="vapaa_cruiser" type="cam_calibration_node.py" output="screen" cwd="node">
+        <param name="gridX" value="8"/>
+        <param name="gridY" value="6"/>
+        <param name="gridSize" value="25"/>
+        <param name="targetW" value="640"/>
+        <param name="targetH" value="480"/>
+    </node>
+    
+</launch>
