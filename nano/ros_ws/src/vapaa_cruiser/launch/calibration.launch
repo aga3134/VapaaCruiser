@@ -1,6 +1,5 @@
 <launch>
     <node name="cam_capture_node" pkg="vapaa_cruiser" type="cam_capture_node.py" output="screen">
-        <param name="camID" value="2"/>
         <param name="width" value="640"/>
         <param name="height" value="480"/>
         <param name="rate" value="30"/>
