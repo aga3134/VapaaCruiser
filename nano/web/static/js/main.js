@@ -11,7 +11,7 @@ var app = new Vue({
         topic: {
             carState:  {name: "/car_state", type:"std_msgs/String"},
             carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist"},
-            frontRGB:  {name: "/image/compressed", type:"sensor_msgs/CompressedImage"},
+            frontRGB:  {name: "/apriltag/detected/compressed", type:"sensor_msgs/CompressedImage"},
             sideRGB:  {name: "/camera/color/image_raw/compressed", type:"sensor_msgs/CompressedImage"},
             sideDepth:  {name: "/camera/aligned_depth_to_color/image_raw/compressedDepth", type:"sensor_msgs/CompressedImage"},
         },
@@ -22,7 +22,8 @@ var app = new Vue({
         },
         trajectory:{
             map: null,
-            marker: null
+            path: null,
+            marker: null,
         },
         joystick: {
             touch: false,
@@ -75,13 +76,11 @@ var app = new Vue({
                 this.status.usB = parseFloat(arr[6]);
                 this.status.usBR = parseFloat(arr[7]);
 
-                if(this.trajectory.marker){
-                    this.trajectory.marker.setLatLng(this.status.pos);
-                }
-                else{
-                    this.trajectory.marker = L.marker(this.status.pos);
-                    this.trajectory.marker.addTo(this.trajectory.map);
-                }
+                //var t = spacetime.now();
+                //this.status.pos.lat = 23.5+Math.sin(t.millisecond());
+                //this.status.pos.lng = 121+Math.cos(t.millisecond());
+
+                this.UpdateTrajectory();
             }.bind(this));
 
             var frontRGB = new ROSLIB.Topic({
@@ -141,6 +140,7 @@ var app = new Vue({
                     attribution: '<a href="https://www.openstreetmap.org/">OSM</a>',
                     maxZoom: 19,
                 }).addTo(this.trajectory.map);
+                L.control.scale().addTo(this.trajectory.map);
             }.bind(this));
             
         },
@@ -185,6 +185,36 @@ var app = new Vue({
             var x = "left: "+(this.joystick.x-indicator.width()*0.5)+"px;";
             var y = "top: "+(this.joystick.y-indicator.height()*0.5)+"px;";
             return x+y;
+        },
+        UpdateTrajectory: function(){
+            if(this.status.pos.lat < -90 || this.status.pos.lat > 90 || this.status.pos.lng < -180 || this.status.pos.lng > 180){
+                console.log("invalid lat lng");
+                return;
+            }
+            //update marker
+            if(this.trajectory.marker){
+                this.trajectory.marker.setLatLng(this.status.pos);
+            }
+            else{
+                this.trajectory.marker = L.marker(this.status.pos);
+                this.trajectory.marker.addTo(this.trajectory.map);
+            }
+            //update trajectory
+            if(!this.trajectory.path){
+                this.trajectory.path = L.polyline([], {color: 'red'}).addTo(this.trajectory.map);
+                this.trajectory.path.addLatLng(this.status.pos);
+            }
+            else{
+                var ptArr = this.trajectory.path.getLatLngs();
+                var lastPt = ptArr[ptArr.length-1];
+                var latDiff = lastPt.lat-this.status.pos.lat;
+                var lngDiff = lastPt.lng-this.status.pos.lng;
+                var thresh = 0.00001;
+                if(latDiff*latDiff+lngDiff*lngDiff > thresh*thresh){
+                    this.trajectory.path.addLatLng(this.status.pos);
+                }
+                
+            }
         }
     }
 });
