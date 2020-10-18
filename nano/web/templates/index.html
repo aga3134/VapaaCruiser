@@ -63,9 +63,9 @@
                 <button type="button" class="btn btn-dark mx-2" :class="{active: action=='auto'}" @click="ChangeAction('auto');">自動巡航</button>
             </div>
 
-            <div class="bottom-panel" :class="{open: action=='manual' }" v-touch:end="StopJoystick" v-touch:moving="MoveJoystick">
+            <div class="bottom-panel" :class="{open: action=='manual' }">
                 <div class="d-flex justify-content-around align-items-center h-100">
-                    <div id="joystick" class="joystick" v-touch:start="StartJoystick">
+                    <div id="joystick" class="joystick" v-touch:start="StartJoystick" v-touch:end="StopJoystick" v-touch:moving="MoveJoystick">
                         <div class="arrow-up"></div>
                         <div class="arrow-down"></div>
                         <div class="arrow-left"></div>
