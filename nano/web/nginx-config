@@ -1,0 +1,24 @@
+upstream vapaa_cruiser{
+	server 127.0.0.1:5000;
+}
+
+
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	root /home/demeter/VapaaCruiser/nano/web/;
+
+	index index.html index.htm index.nginx-debian.html;
+
+	server_name _;
+
+	location /static/ {
+		try_files $uri $uri/ =404;
+	}
+	location / {
+		proxy_pass http://vapaa_cruiser/;
+	}
+
+}
+
