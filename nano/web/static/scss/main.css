@@ -18,6 +18,8 @@ html, body {
 }
 
 .vapaa-cruiser .topbar {
+  position: fixed;
+  z-index: 2000;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -47,6 +49,12 @@ html, body {
   -webkit-box-flex: 1;
       -ms-flex-positive: 1;
           flex-grow: 1;
+}
+
+.vapaa-cruiser .main-content {
+  height: 100%;
+  padding: 80px 10px;
+  overflow: auto;
 }
 
 .vapaa-cruiser .map-container {

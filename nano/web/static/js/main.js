@@ -152,6 +152,7 @@ var app = new Vue({
             this.action = action;
         },
         StartJoystick: function(evt){
+            evt.preventDefault(); 
             if(evt.type == "touchstart"){
                 evt = evt.touches[0];
             }
@@ -160,9 +161,11 @@ var app = new Vue({
             this.joystick.touch = true;
         },
         StopJoystick: function(evt){
+            evt.preventDefault(); 
             this.joystick.touch = false;
         },
         MoveJoystick: function(evt){
+            evt.preventDefault(); 
             if(!this.joystick.touch) return;
             if(evt.type == "touchstart"){
                 evt = evt.touches[0];
