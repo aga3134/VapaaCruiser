@@ -166,7 +166,7 @@ var app = new Vue({
         },
         MoveJoystick: function(evt){
             if(!this.joystick.touch) return;
-            if(evt.type == "touchstart"){
+            if(evt.type == "touchmove"){
                 evt = evt.touches[0];
             }
             var joystick = $("#joystick");
