@@ -20,7 +20,7 @@
         <param name="distTolerance" value="100"/>
         <param name="minAngle" value="-0.78539815"/>
         <param name="maxAngle" value="0.78539815"/>
-        <param name="speedScale" value="0.00001"/>
+        <param name="speedScale" value="0.000015"/>
     </node>
 
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">

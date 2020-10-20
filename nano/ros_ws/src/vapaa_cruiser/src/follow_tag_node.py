@@ -14,7 +14,7 @@ class FollowTag():
         self.distTolerance = rospy.get_param("~distTolerance",100)
         self.minAngle = rospy.get_param("~minAngle",-math.pi*0.25)
         self.maxAngle = rospy.get_param("~maxAngle",math.pi*0.25)
-        self.speedScale = rospy.get_param("~speedScale",0.00001)
+        self.speedScale = rospy.get_param("~speedScale",0.000015)
 
         self.fsmSub = rospy.Subscriber("fsm/state", String, self.ChangeState)
         self.tagDetectSub = rospy.Subscriber("apriltag/detected/info",apriltagDetectArray, self.FollowTag)
@@ -31,7 +31,7 @@ class FollowTag():
                 msg = Twist()
                 pos = tag.pose.position
 
-                angle = -math.atan2(pos.x,pos.z)
+                angle = math.atan2(pos.x,pos.z)
                 angle = ((angle-self.minAngle)/(self.maxAngle-self.minAngle)-0.5)*2
                 if angle < -1:
                     angle = -1
