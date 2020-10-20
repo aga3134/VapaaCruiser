@@ -24,6 +24,7 @@ var app = new Vue({
             map: null,
             path: null,
             marker: null,
+            lastUpdate: null
         },
         joystick: {
             touch: false,
@@ -151,6 +152,7 @@ var app = new Vue({
             this.action = action;
         },
         StartJoystick: function(evt){
+            $("#mainContent").css("overflow","hidden");
             if(evt.type == "touchstart"){
                 evt = evt.touches[0];
             }
@@ -159,11 +161,12 @@ var app = new Vue({
             this.joystick.touch = true;
         },
         StopJoystick: function(evt){
+            $("#mainContent").css("overflow","");
             this.joystick.touch = false;
         },
         MoveJoystick: function(evt){
             if(!this.joystick.touch) return;
-            if(evt.type == "touchstart"){
+            if(evt.type == "touchmove"){
                 evt = evt.touches[0];
             }
             var joystick = $("#joystick");
@@ -188,7 +191,7 @@ var app = new Vue({
         },
         UpdateTrajectory: function(){
             if(this.status.pos.lat < -90 || this.status.pos.lat > 90 || this.status.pos.lng < -180 || this.status.pos.lng > 180){
-                console.log("invalid lat lng");
+                //console.log("invalid pos: lat="+this.status.pos.lat+", lng="+this.status.pos.lng);
                 return;
             }
             //update marker
@@ -203,15 +206,13 @@ var app = new Vue({
             if(!this.trajectory.path){
                 this.trajectory.path = L.polyline([], {color: 'red'}).addTo(this.trajectory.map);
                 this.trajectory.path.addLatLng(this.status.pos);
+                this.trajectory.lastUpdate = spacetime.now();
             }
             else{
-                var ptArr = this.trajectory.path.getLatLngs();
-                var lastPt = ptArr[ptArr.length-1];
-                var latDiff = lastPt.lat-this.status.pos.lat;
-                var lngDiff = lastPt.lng-this.status.pos.lng;
-                var thresh = 0.00001;
-                if(latDiff*latDiff+lngDiff*lngDiff > thresh*thresh){
+                var curTime = spacetime.now();
+                if(this.trajectory.lastUpdate.diff(curTime,"second") >= 10){
                     this.trajectory.path.addLatLng(this.status.pos);
+                    this.trajectory.lastUpdate = curTime;
                 }
                 
             }

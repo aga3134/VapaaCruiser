@@ -1,6 +1,6 @@
 {
     "web": {
-        "title": "VapaaCruiser",
+        "title": "VapaaCruiser"
     },
     "ws":{
         "host":"YOUR_JETSON_NANO_IP",
