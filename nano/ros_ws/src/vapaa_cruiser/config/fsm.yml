@@ -1,0 +1,37 @@
+# Initail state of the FSM
+initial_state: "STANDBY"
+
+# Define global transitions. Available from all states.
+global_transitions:
+  emergency_stop: "EMERGENCY_STOP"
+
+# Define state transitions
+states:
+  STANDBY:
+    transitions:
+      joystick_mode: "JOYSTICK_MODE"
+      follow_mode: "FOLLOW_MODE"
+      auto_navigation: "AUTO_NAVIGATION"
+  EMERGENCY_STOP:
+    transitions:
+      reset: "STANDBY"
+  JOYSTICK_MODE:
+    transitions:
+      abort: "STANDBY"
+  FOLLOW_MODE:
+    transitions:
+      abort: "STANDBY"
+  AUTO_NAVIGATION:
+    transitions:
+      abort: "STANDBY"
+      finish: "STANDBY"
+      go_to_pos: "GO_TO_POS" 
+  GO_TO_POS:
+    transitions:
+      abort: "AUTO_NAVIGATION"
+      arrive: "DETECT"
+  DETECT:
+    transitions:
+      abort: "AUTO_NAVIGATION"
+      finish: "AUTO_NAVIGATION"
+      

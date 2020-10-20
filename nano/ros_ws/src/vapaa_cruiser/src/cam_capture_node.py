@@ -22,6 +22,7 @@ class CamCapture():
                 self.K = config["camera_matrix"]["data"]
                 self.D = config["distortion_coefficients"]["data"]
         else:
+            rospy.loginfo("config file %s not found" % (configFile))
             self.width = rospy.get_param("~width",640)
             self.height = rospy.get_param("~height",480)
 
