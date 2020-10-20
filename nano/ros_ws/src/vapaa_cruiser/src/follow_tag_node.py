@@ -50,7 +50,7 @@ class FollowTag():
                     msg.linear.x = speed
                 else:   #distance in tolerance
                     msg.linear.x = 0
-                print(msg)
+                #print(msg)
                 self.cmdPub.publish(msg)
 
 

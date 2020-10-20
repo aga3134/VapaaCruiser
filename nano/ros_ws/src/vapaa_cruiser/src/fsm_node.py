@@ -4,13 +4,15 @@ import rospy
 from std_msgs.msg import String
 import yaml
 import os
+import rospkg
 
 class FSM():
     def __init__(self):
         #use latch=True to send latest state to new subscriber
         self.statePub = rospy.Publisher('fsm/state',String, queue_size=1,latch=True) 
-
-        configFile = rospy.get_param("~configFile","config/fsm.yml")
+        
+        rospack = rospkg.RosPack()
+        configFile = rospy.get_param("~configFile",rospack.get_path("vapaa_cruiser")+"/config/fsm.yml")
         if os.path.isfile(configFile):
             with open(configFile) as f:
                 self.config = yaml.load(f)
