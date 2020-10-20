@@ -12,6 +12,17 @@
     <node name="apriltag_node" pkg="vapaa_cruiser" type="apriltag_node.py" output="screen">
         <param name="tagSize" value="30"/>
     </node>
+    <node name="fsm_node" pkg="vapaa_cruiser" type="fsm_node.py" output="screen">
+    </node>
+    <node name="follow_tag_node" pkg="vapaa_cruiser" type="follow_tag_node.py" output="screen">
+        <param name="tagID" value="1"/>
+        <param name="keepDist" value="600"/>
+        <param name="distTolerance" value="100"/>
+        <param name="minAngle" value="-0.78539815"/>
+        <param name="maxAngle" value="0.78539815"/>
+        <param name="speedScale" value="0.00001"/>
+    </node>
+
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="align_depth" value="true"/>
         <arg name="color_width" value="320"/>

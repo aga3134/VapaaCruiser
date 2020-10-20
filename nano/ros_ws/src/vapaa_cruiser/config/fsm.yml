@@ -9,16 +9,16 @@ global_transitions:
 states:
   STANDBY:
     transitions:
-      joystick_mode: "JOYSTICK_MODE"
-      follow_mode: "FOLLOW_MODE"
+      joystick_control: "JOYSTICK_CONTROL"
+      follow_tag: "FOLLOW_TAG"
       auto_navigation: "AUTO_NAVIGATION"
   EMERGENCY_STOP:
     transitions:
       reset: "STANDBY"
-  JOYSTICK_MODE:
+  JOYSTICK_CONTROL:
     transitions:
       abort: "STANDBY"
-  FOLLOW_MODE:
+  FOLLOW_TAG:
     transitions:
       abort: "STANDBY"
   AUTO_NAVIGATION:
