@@ -18,7 +18,7 @@
                 <img class="icon" src="static/image/logo.png">
                 <div class="title">田間巡航艦</div>
                 <div class="spacer"></div>
-                <button type="button" class="btn btn-dark mx-2" @click="Logout();">設定</button>
+                <button type="button" class="btn btn-dark mx-2" @click="openSetting = true;">設定</button>
             </div>
             
             <div id="mainContent" class="container-fluid text-center main-content">
@@ -27,6 +27,48 @@
                         <div class="card h-100">
                             <div class="map-container">
                                 <div class="map" id="map"></div>
+                                <div class="pos-top-left">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usFL.indicator=='safe',
+                                        warn: status.usFL.indicator=='warn',
+                                        danger: status.usFL.indicator=='danger',
+                                    }"></div>
+                                </div>
+                                <div class="pos-top">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usF.indicator=='safe',
+                                        warn: status.usF.indicator=='warn',
+                                        danger: status.usF.indicator=='danger',
+                                    }"></div>
+                                </div>
+                                <div class="pos-top-right">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usFR.indicator=='safe',
+                                        warn: status.usFR.indicator=='warn',
+                                        danger: status.usFR.indicator=='danger',
+                                    }"></div>
+                                </div>
+                                <div class="pos-bottom-left">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usBL.indicator=='safe',
+                                        warn: status.usBL.indicator=='warn',
+                                        danger: status.usBL.indicator=='danger',
+                                    }"></div>
+                                </div>
+                                <div class="pos-bottom">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usB.indicator=='safe',
+                                        warn: status.usB.indicator=='warn',
+                                        danger: status.usB.indicator=='danger',
+                                    }"></div>
+                                </div>
+                                <div class="pos-bottom-right">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usBR.indicator=='safe',
+                                        warn: status.usBR.indicator=='warn',
+                                        danger: status.usBR.indicator=='danger',
+                                    }"></div>
+                                </div>
                             </div>
                             <div class="card-footer">
                                 <div class="card-title">路徑</div>
@@ -42,6 +84,12 @@
                                 <div class="card-title">前鏡頭</div>
                             </div>
                         </div>
+                        <div class="pos-top">
+                            <div class="d-flex justify-center align-items-center">
+                                <div class="material-icons btn p-1 m-2 bg-primary text-white rounded-circle">save</div>
+                                <div class="material-icons btn p-1 m-2 bg-primary text-white rounded-circle">cloud_upload</div> 
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-md">
@@ -49,6 +97,12 @@
                             <img class="card-img-top" :src="imageData.sideRGB">
                             <div class="card-footer">
                                 <div class="card-title">側鏡頭</div>
+                            </div>
+                        </div>
+                        <div class="pos-top">
+                            <div class="d-flex justify-center align-items-center">
+                                <div class="material-icons btn p-1 m-2 bg-primary text-white rounded-circle">save</div>
+                                <div class="material-icons btn p-1 m-2 bg-primary text-white rounded-circle">cloud_upload</div> 
                             </div>
                         </div>
                     </div>
@@ -94,7 +148,7 @@
                     <div class="d-flex flex-column align-items-center">
                         <div class="input-group p-1">
                             <div class="input-group-prepend">
-                              <span class="input-group-text">ID</span>
+                              <span class="input-group-text">追蹤ID</span>
                             </div>
                             <input type="number" class="form-control" placeholder="追蹤標籤編號" v-model="followTag.tagID">
                           </div>
@@ -128,18 +182,33 @@
                 </div>
             </div>
 
-            <div class="modal-panel" v-show="status.robotState=='AUTO_NAVIGATION' ">
-                <div class="content-container">
-                    <div class="btn" @click="FSMTransition('abort');">關閉</div>
+            <transition name="fade">
+                <div class="modal-panel" v-show="status.robotState=='AUTO_NAVIGATION' ">
+                    <div class="content-container">
+                        <div class="btn" @click="FSMTransition('abort');">關閉</div>
+                    </div>
                 </div>
-            </div>
+            </transition>
 
+            <transition name="fade">
+                <div class="modal-panel" v-show="openSetting">
+                    <div class="content-container">
+                        <div class="btn btn-dark pos-top-right">登出</div>
+                        <div class="d-flex justify-content-center align-items-center">
+                            <div class="btn" @click="openSetting = false;">儲存</div>
+                            <div class="btn" @click="openSetting = false;">取消</div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+            
             <div class="loading-page" v-show="loading">
                 <div class="logo-container">
                     <img class="logo" src="static/image/logo.png">
                     <h3 class="text-center m-2">田間巡航艦</h3>
                 </div>
             </div>
+            
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>

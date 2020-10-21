@@ -5,8 +5,12 @@ var app = new Vue({
         status:  {
             robotState: "",
             gps: {lat: null, lng: null},
-            usFL:-1, usF:-1, usFR:-1,
-            usBL:-1, usB:-1, usBR:-1
+            usFL:{dist: -1, indicator:""},
+            usF:{dist: -1, indicator:""},
+            usFR:{dist: -1, indicator:""},
+            usBL:{dist: -1, indicator:""},
+            usB:{dist: -1, indicator:""},
+            usBR:{dist: -1, indicator:""},
         },
         topic: {
             carState:  {name: "/car_state", type:"std_msgs/String",instance:null},
@@ -81,12 +85,25 @@ var app = new Vue({
                 var arr = msg.data.split(",")
                 this.status.gps.lat = parseFloat(arr[0]);
                 this.status.gps.lng = parseFloat(arr[1]);
-                this.status.usFL = parseFloat(arr[2]);
-                this.status.usF = parseFloat(arr[3]);
-                this.status.usFR = parseFloat(arr[4]);
-                this.status.usBL = parseFloat(arr[5]);
-                this.status.usB = parseFloat(arr[6]);
-                this.status.usBR = parseFloat(arr[7]);
+                this.status.usFL.dist = parseFloat(arr[2]);
+                this.status.usF.dist = parseFloat(arr[3]);
+                this.status.usFR.dist = parseFloat(arr[4]);
+                this.status.usBL.dist = parseFloat(arr[5]);
+                this.status.usB.dist = parseFloat(arr[6]);
+                this.status.usBR.dist = parseFloat(arr[7]);
+
+                function ComputeIndicator(dist){
+                    var alertDist = 50, warnDist = 70;
+                    if(dist < alertDist) return "danger";
+                    else if(dist < warnDist) return "warn";
+                    else return "safe";
+                }
+                this.status.usFL.indicator = ComputeIndicator(this.status.usFL.dist);
+                this.status.usF.indicator = ComputeIndicator(this.status.usF.dist);
+                this.status.usFR.indicator = ComputeIndicator(this.status.usFR.dist);
+                this.status.usBL.indicator = ComputeIndicator(this.status.usBL.dist);
+                this.status.usB.indicator = ComputeIndicator(this.status.usB.dist);
+                this.status.usBR.indicator = ComputeIndicator(this.status.usBR.dist);
 
                 //var t = spacetime.now();
                 //this.status.gps.lat = 23.5+Math.sin(t.millisecond());
@@ -183,7 +200,9 @@ var app = new Vue({
         },
         InitMap: function(){
             Vue.nextTick(function(){
-                this.trajectory.map = L.map("map").setView([23.682094, 120.7764642], 7);
+                this.trajectory.map = L.map("map",{
+                    zoomControl: false
+                }).setView([23.9652,120.9674], 19);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '<a href="https://www.openstreetmap.org/">OSM</a>',
                     maxZoom: 19,
@@ -193,7 +212,9 @@ var app = new Vue({
             
         },
         Logout: function(){
-            window.location.href="/logout";
+            if(confirm("確定登出？")){
+                window.location.href="/logout";
+            }
         },
         FSMTransition: function(event){
             var msg = new ROSLIB.Message({
@@ -281,6 +302,7 @@ var app = new Vue({
                 }
                 
             }
-        }
+        },
+
     }
 });
