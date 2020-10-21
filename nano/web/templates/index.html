@@ -58,12 +58,12 @@
                 </div>
             </div>
             <div class="action-bar">
-                <button type="button" class="btn btn-dark mx-2" :class="{active: action=='manual'}" @click="ChangeAction('manual');">手動巡航</button>
-                <button type="button" class="btn btn-dark mx-2" :class="{active: action=='follow'}" @click="ChangeAction('follow');">跟隨模式</button>
-                <button type="button" class="btn btn-dark mx-2" :class="{active: action=='auto'}" @click="ChangeAction('auto');">自動巡航</button>
+                <button type="button" class="btn btn-dark mx-2" :class="{active: status.robotState=='JOYSTICK_CONTROL'}" @click="FSMTransition('joystick_control');">手動巡航</button>
+                <button type="button" class="btn btn-dark mx-2" :class="{active: status.robotState=='FOLLOW_TAG'}" @click="FSMTransition('follow_tag');">跟隨模式</button>
+                <button type="button" class="btn btn-dark mx-2" :class="{active: status.robotState=='AUTO_NAVIGATION'}" @click="FSMTransition('auto_navigation');">自動巡航</button>
             </div>
 
-            <div class="bottom-panel" :class="{open: action=='manual' }">
+            <div class="bottom-panel" :class="{open: status.robotState=='JOYSTICK_CONTROL' }">
                 <div class="d-flex justify-content-around align-items-center h-100">
                     <div id="joystick" class="joystick" v-touch:start="StartJoystick" v-touch:end="StopJoystick" v-touch:moving="MoveJoystick">
                         <div class="arrow-up"></div>
@@ -80,7 +80,7 @@
                                 <span class="material-icons">place</span> 新增定位點
                             </div>
                         </div>
-                        <div class="btn btn-dark m-2" @click="ChangeAction('');">
+                        <div class="btn btn-dark m-2" @click="FSMTransition('abort');">
                             <div class="d-flex align-items-center">
                                 <span class="material-icons">close</span> 結束巡航
                             </div>
@@ -89,13 +89,48 @@
                 </div>
             </div>
 
-            <div class="bottom-panel" :class="{open: action=='follow' }">
-                <div class="btn" @click="ChangeAction('');">結束跟隨</div>
+            <div class="bottom-panel" :class="{open: status.robotState=='FOLLOW_TAG' }">
+                <div class="d-flex justify-content-around align-items-center h-100">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">ID</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="追蹤標籤編號" v-model="followTag.tagID">
+                          </div>
+                          <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">距離</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="要保持的距離(mm)" v-model="followTag.distance">
+                          </div>
+                          <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">誤差</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="可容忍誤差(mm)" v-model="followTag.tolerance">
+                          </div>
+                    </div>
+
+                    <div class="d-flex flex-column align-items-center flex-shrink-0">
+                        <div class="btn btn-dark m-2" @click="UpdateFollowTagParam();">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons">settings</span> 更新參數
+                            </div>
+                        </div>
+                        <div class="btn btn-dark m-2" @click="FSMTransition('abort');">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons">close</span> 結束跟隨
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
-            <div class="modal-panel" v-show="action=='auto' ">
+            <div class="modal-panel" v-show="status.robotState=='AUTO_NAVIGATION' ">
                 <div class="content-container">
-                    <div class="btn" @click="ChangeAction('');">關閉</div>
+                    <div class="btn" @click="FSMTransition('abort');">關閉</div>
                 </div>
             </div>
 

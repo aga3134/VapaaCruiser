@@ -4,6 +4,7 @@ import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from vapaa_cruiser.msg import apriltagDetectArray
+from vapaa_cruiser.srv import followTagSetParam,followTagSetParamResponse,followTagGetParam,followTagGetParamResponse
 import math
 
 class FollowTag():
@@ -19,9 +20,26 @@ class FollowTag():
         self.fsmSub = rospy.Subscriber("fsm/state", String, self.ChangeState)
         self.tagDetectSub = rospy.Subscriber("apriltag/detected/info",apriltagDetectArray, self.FollowTag)
         self.cmdPub = rospy.Publisher("car_cmd",Twist, queue_size=1)
+
+        self.getParamSrv = rospy.Service("followTag/getParam", followTagGetParam, self.ServiceGetParam)
+        self.setParamSrv = rospy.Service("followTag/setParam", followTagSetParam, self.ServiceSetParam)
         
     def ChangeState(self,msg):
         self.state = msg.data
+
+    def ServiceGetParam(self,request):
+        res = followTagGetParamResponse()
+        res.tagID = self.tagID
+        res.distance = self.keepDist
+        res.tolerance = self.distTolerance
+        return res
+
+    def ServiceSetParam(self,request):
+        self.tagID = request.tagID
+        self.keepDist = request.distance
+        self.distTolerance = request.tolerance
+        rospy.loginfo("update follow tag parameter, tagID=%d, keepDist=%d, distTolerance=%f" % (self.tagID,self.keepDist,self.distTolerance))
+        return True
        
     def FollowTag(self,msg):
         if self.state != "FOLLOW_TAG":

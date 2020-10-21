@@ -1,0 +1,4 @@
+---
+int32 tagID
+int32 distance
+int32 tolerance

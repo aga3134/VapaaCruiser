@@ -2,18 +2,24 @@ var app = new Vue({
     el: '#app',
     data: {
         connectState: "",
-        action: "",
         status:  {
-            pos: {lat: null, lng: null},
+            robotState: "",
+            gps: {lat: null, lng: null},
             usFL:-1, usF:-1, usFR:-1,
             usBL:-1, usB:-1, usBR:-1
         },
         topic: {
-            carState:  {name: "/car_state", type:"std_msgs/String"},
-            carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist"},
-            frontRGB:  {name: "/apriltag/detected/compressed", type:"sensor_msgs/CompressedImage"},
-            sideRGB:  {name: "/camera/color/image_raw/compressed", type:"sensor_msgs/CompressedImage"},
-            sideDepth:  {name: "/camera/aligned_depth_to_color/image_raw/compressedDepth", type:"sensor_msgs/CompressedImage"},
+            carState:  {name: "/car_state", type:"std_msgs/String",instance:null},
+            fsmState: {name: "/fsm/state",type:"std_msgs/String",instance:null},
+            fsmEvent: {name: "/fsm/event",type:"std_msgs/String",instance:null},
+            carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist",instance:null},
+            frontRGB:  {name: "/apriltag/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null},
+            sideRGB:  {name: "/camera/color/image_raw/compressed", type:"sensor_msgs/CompressedImage",instance:null},
+            sideDepth:  {name: "/camera/aligned_depth_to_color/image_raw/compressedDepth", type:"sensor_msgs/CompressedImage",instance:null},
+        },
+        service: {
+            followTagGetParam:  {name: "/followTag/getParam", type:"vapaa_cruiser/followTagGetParam",instance:null},
+            followTagSetParam:  {name: "/followTag/setParam", type:"vapaa_cruiser/followTagSetParam",instance:null},
         },
         imageData:{
             frontRGB: "static/image/logo.png",
@@ -30,6 +36,11 @@ var app = new Vue({
             touch: false,
             x: 0,
             y: 0
+        },
+        followTag: {
+            tagID: null,
+            distance: null,
+            tolerance: null
         },
         loading: true
     },
@@ -61,15 +72,15 @@ var app = new Vue({
             }.bind(this));
 
             //subscribe topics
-            var carState = new ROSLIB.Topic({
+            this.topic.carState.instance = new ROSLIB.Topic({
                 ros : ros,
                 name : this.topic.carState.name,
                 messageType : this.topic.carState.type
             });
-            carState.subscribe(function(msg) {
+            this.topic.carState.instance.subscribe(function(msg) {
                 var arr = msg.data.split(",")
-                this.status.pos.lat = parseFloat(arr[0]);
-                this.status.pos.lng = parseFloat(arr[1]);
+                this.status.gps.lat = parseFloat(arr[0]);
+                this.status.gps.lng = parseFloat(arr[1]);
                 this.status.usFL = parseFloat(arr[2]);
                 this.status.usF = parseFloat(arr[3]);
                 this.status.usFR = parseFloat(arr[4]);
@@ -78,47 +89,63 @@ var app = new Vue({
                 this.status.usBR = parseFloat(arr[7]);
 
                 //var t = spacetime.now();
-                //this.status.pos.lat = 23.5+Math.sin(t.millisecond());
-                //this.status.pos.lng = 121+Math.cos(t.millisecond());
+                //this.status.gps.lat = 23.5+Math.sin(t.millisecond());
+                //this.status.gps.lng = 121+Math.cos(t.millisecond());
 
                 this.UpdateTrajectory();
             }.bind(this));
 
-            var frontRGB = new ROSLIB.Topic({
+            this.topic.fsmState.instance = new ROSLIB.Topic({
+                ros : ros,
+                name : this.topic.fsmState.name,
+                messageType : this.topic.fsmState.type
+            });
+            this.topic.fsmState.instance.subscribe(function(msg) {
+                this.status.robotState = msg.data;
+            }.bind(this));
+
+            this.topic.frontRGB.instance = new ROSLIB.Topic({
                 ros : ros,
                 name : this.topic.frontRGB.name,
                 messageType : this.topic.frontRGB.type
             });
-            frontRGB.subscribe(function(msg) {
+            this.topic.frontRGB.instance.subscribe(function(msg) {
                 this.imageData.frontRGB = "data:image/jpeg;base64,"+msg.data;
             }.bind(this));
 
-            var sideRGB = new ROSLIB.Topic({
+            this.topic.sideRGB.instance = new ROSLIB.Topic({
                 ros : ros,
                 name : this.topic.sideRGB.name,
                 messageType : this.topic.sideRGB.type
             });
-            sideRGB.subscribe(function(msg) {
+            this.topic.sideRGB.instance.subscribe(function(msg) {
                 this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
             }.bind(this));
 
-            var sideDepth = new ROSLIB.Topic({
+            this.topic.sideDepth.instance = new ROSLIB.Topic({
                 ros : ros,
                 name : this.topic.sideDepth.name,
                 messageType : this.topic.sideDepth.type
             });
-            sideDepth.subscribe(function(msg) {
+            this.topic.sideDepth.instance.subscribe(function(msg) {
                 this.imageData.sideDepth = "data:image/jpeg;base64,"+msg.data;
             }.bind(this));
 
-            var carCmd = new ROSLIB.Topic({
+            //publish topics
+            this.topic.fsmEvent.instance = new ROSLIB.Topic({
+                ros : ros,
+                name : this.topic.fsmEvent.name,
+                messageType : this.topic.fsmEvent.type
+            });
+
+            this.topic.carCmd.instance = new ROSLIB.Topic({
                 ros : ros,
                 name : this.topic.carCmd.name,
                 messageType : this.topic.carCmd.type
               });
 
             setInterval(function(){
-                if(this.action != "manual") return;
+                if(this.status.robotState != "JOYSTICK_CONTROL") return;
                 var forward = 0, turn = 0;
                 if(this.joystick.touch){
                     var joystick = $("#joystick");
@@ -130,9 +157,29 @@ var app = new Vue({
                     angular : {x : 0, y : 0, z : turn}
                   });
                   //console.log([forward,turn]);
-                  carCmd.publish(twist);
+                  this.topic.carCmd.instance.publish(twist);
             }.bind(this), 30);
             
+            //services
+            this.service.followTagGetParam.instance = new ROSLIB.Service({
+                ros: ros,
+                name: this.service.followTagGetParam.name,
+                serviceType : this.service.followTagGetParam.type
+            });
+            
+            var request = new ROSLIB.ServiceRequest({});
+            this.service.followTagGetParam.instance.callService(request, function(result) {
+                this.followTag.tagID = result.tagID;
+                this.followTag.distance = result.distance;
+                this.followTag.tolerance = result.tolerance;
+            }.bind(this));
+
+            this.service.followTagSetParam.instance = new ROSLIB.Service({
+                ros: ros,
+                name: this.service.followTagSetParam.name,
+                serviceType : this.service.followTagSetParam.type
+            });
+
         },
         InitMap: function(){
             Vue.nextTick(function(){
@@ -148,8 +195,11 @@ var app = new Vue({
         Logout: function(){
             window.location.href="/logout";
         },
-        ChangeAction: function(action){
-            this.action = action;
+        FSMTransition: function(event){
+            var msg = new ROSLIB.Message({
+                data : event
+            });
+            this.topic.fsmEvent.instance.publish(msg);
         },
         StartJoystick: function(evt){
             $("#mainContent").css("overflow","hidden");
@@ -189,29 +239,44 @@ var app = new Vue({
             var y = "top: "+(this.joystick.y-indicator.height()*0.5)+"px;";
             return x+y;
         },
+        UpdateFollowTagParam: function(){
+            var request = new ROSLIB.ServiceRequest({
+                tagID: this.followTag.tagID,
+                distance: this.followTag.distance,
+                tolerance: this.followTag.tolerance
+            });
+            this.service.followTagSetParam.instance.callService(request, function(result) {
+                if(result.success){
+                    alert("更新成功");
+                }
+                else{
+                    alert("更新失敗");
+                }
+            }.bind(this));
+        },
         UpdateTrajectory: function(){
-            if(this.status.pos.lat < -90 || this.status.pos.lat > 90 || this.status.pos.lng < -180 || this.status.pos.lng > 180){
-                //console.log("invalid pos: lat="+this.status.pos.lat+", lng="+this.status.pos.lng);
+            if(this.status.gps.lat < -90 || this.status.gps.lat > 90 || this.status.gps.lng < -180 || this.status.gps.lng > 180){
+                //console.log("invalid gps: lat="+this.status.gps.lat+", lng="+this.status.gps.lng);
                 return;
             }
             //update marker
             if(this.trajectory.marker){
-                this.trajectory.marker.setLatLng(this.status.pos);
+                this.trajectory.marker.setLatLng(this.status.gps);
             }
             else{
-                this.trajectory.marker = L.marker(this.status.pos);
+                this.trajectory.marker = L.marker(this.status.gps);
                 this.trajectory.marker.addTo(this.trajectory.map);
             }
             //update trajectory
             if(!this.trajectory.path){
-                this.trajectory.path = L.polyline([], {color: 'red'}).addTo(this.trajectory.map);
-                this.trajectory.path.addLatLng(this.status.pos);
+                this.trajectory.path = L.polyline([], {color: "red"}).addTo(this.trajectory.map);
+                this.trajectory.path.addLatLng(this.status.gps);
                 this.trajectory.lastUpdate = spacetime.now();
             }
             else{
                 var curTime = spacetime.now();
                 if(this.trajectory.lastUpdate.diff(curTime,"second") >= 10){
-                    this.trajectory.path.addLatLng(this.status.pos);
+                    this.trajectory.path.addLatLng(this.status.gps);
                     this.trajectory.lastUpdate = curTime;
                 }
                 
