@@ -46,6 +46,10 @@ var app = new Vue({
             distance: null,
             tolerance: null
         },
+        commutag:{
+            apiKey: null,
+            dataset: null
+        },
         loading: true
     },
     delimiters: ['[[',']]'],    //vue跟jinja的語法會衝突

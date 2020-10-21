@@ -151,19 +151,19 @@
                               <span class="input-group-text">追蹤ID</span>
                             </div>
                             <input type="number" class="form-control" placeholder="追蹤標籤編號" v-model="followTag.tagID">
-                          </div>
-                          <div class="input-group p-1">
+                        </div>
+                        <div class="input-group p-1">
                             <div class="input-group-prepend">
                               <span class="input-group-text">距離</span>
                             </div>
                             <input type="number" class="form-control" placeholder="要保持的距離(mm)" v-model="followTag.distance">
-                          </div>
-                          <div class="input-group p-1">
+                        </div>
+                        <div class="input-group p-1">
                             <div class="input-group-prepend">
                               <span class="input-group-text">誤差</span>
                             </div>
                             <input type="number" class="form-control" placeholder="可容忍誤差(mm)" v-model="followTag.tolerance">
-                          </div>
+                        </div>
                     </div>
 
                     <div class="d-flex flex-column align-items-center flex-shrink-0">
@@ -193,10 +193,25 @@
             <transition name="fade">
                 <div class="modal-panel" v-show="openSetting">
                     <div class="content-container">
-                        <div class="btn btn-dark pos-top-right">登出</div>
+                        <h5 class="text-center m-2">群眾標註設定</h5>
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">資料集ID</span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="群眾標註資料集ID" v-model="commutag.dataset">
+                        </div>
+
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">API金鑰</span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="群眾標註API金鑰" v-model="commutag.apiKey">
+                        </div>
+
                         <div class="d-flex justify-content-center align-items-center">
                             <div class="btn" @click="openSetting = false;">儲存</div>
                             <div class="btn" @click="openSetting = false;">取消</div>
+                            <div class="btn" @click="Logout();">登出</div>
                         </div>
                     </div>
                 </div>
