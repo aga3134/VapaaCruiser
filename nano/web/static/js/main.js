@@ -241,9 +241,9 @@ var app = new Vue({
         },
         UpdateFollowTagParam: function(){
             var request = new ROSLIB.ServiceRequest({
-                tagID: this.followTag.tagID,
-                distance: this.followTag.distance,
-                tolerance: this.followTag.tolerance
+                tagID: parseInt(this.followTag.tagID),
+                distance: parseInt(this.followTag.distance),
+                tolerance: parseInt(this.followTag.tolerance)
             });
             this.service.followTagSetParam.instance.callService(request, function(result) {
                 if(result.success){

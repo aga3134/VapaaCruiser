@@ -44,8 +44,10 @@ class FollowTag():
     def FollowTag(self,msg):
         if self.state != "FOLLOW_TAG":
             return
+        findTag = False
         for tag in msg.tag_array:
             if tag.id == self.tagID:
+                findTag = True
                 msg = Twist()
                 pos = tag.pose.position
 
@@ -70,6 +72,11 @@ class FollowTag():
                     msg.linear.x = 0
                 #print(msg)
                 self.cmdPub.publish(msg)
+        if not findTag:
+            msg = Twist()
+            msg.linear.x = 0
+            msg.angular.z = 0
+            self.cmdPub.publish(msg)
 
 
 if __name__ == '__main__':

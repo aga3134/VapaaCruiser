@@ -10,7 +10,7 @@
         <param name="baud" value="115200"/>
     </node>
     <node name="apriltag_node" pkg="vapaa_cruiser" type="apriltag_node.py" output="screen">
-        <param name="tagSize" value="30"/>
+        <param name="tagSize" value="171"/>
     </node>
     <node name="fsm_node" pkg="vapaa_cruiser" type="fsm_node.py" output="screen">
     </node>
