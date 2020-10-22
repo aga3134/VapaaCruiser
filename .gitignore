@@ -7,3 +7,4 @@ nano/ros_ws/devel/
 *.pyc
 config.json
 calibration.yml
+vapaa_cruiser.db

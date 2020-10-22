@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="ws_host" content="{{config.ws.host}}" />
         <meta name="ws_port" content="{{config.ws.port}}" />
+        <meta name="csrf_token" content="{{csrf_token()}}" />
         <title>{{config.web.title}}</title>
         <link rel="icon" href="static/image/logo.png">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
@@ -209,7 +210,7 @@
                         </div>
 
                         <div class="d-flex justify-content-center align-items-center">
-                            <div class="btn" @click="openSetting = false;">儲存</div>
+                            <div class="btn" @click="SaveSetting();">儲存</div>
                             <div class="btn" @click="openSetting = false;">取消</div>
                             <div class="btn" @click="Logout();">登出</div>
                         </div>

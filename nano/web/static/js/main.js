@@ -50,6 +50,7 @@ var app = new Vue({
             apiKey: null,
             dataset: null
         },
+        openSetting: false,
         loading: true
     },
     delimiters: ['[[',']]'],    //vue跟jinja的語法會衝突
@@ -57,6 +58,12 @@ var app = new Vue({
         this.InitROSConnection();
         this.InitMap();
         this.loading = false;
+
+        $.get("/setting",function(result){
+            if(result.status != "ok") return;
+            this.commutag.dataset = result.data.dataset;
+            this.commutag.apiKey = result.data.apiKey;
+        } .bind(this));
     },
     methods: {
         InitROSConnection: function(){
@@ -278,6 +285,22 @@ var app = new Vue({
                     alert("更新失敗");
                 }
             }.bind(this));
+        },
+        SaveSetting: function(){
+            var csrfToken = $('meta[name=csrf_token]').attr('content')
+            var data = {
+                dataset: this.commutag.dataset,
+                apiKey: this.commutag.apiKey
+            };
+            $.ajax({
+                type: "POST",
+                url: "/setting",
+                data: data,
+                headers: {"X-CSRF-Token": csrfToken},
+                success: function(result){
+                    console.log(result);
+                }
+            });
         },
         UpdateTrajectory: function(){
             if(this.status.gps.lat < -90 || this.status.gps.lat > 90 || this.status.gps.lng < -180 || this.status.gps.lng > 180){

@@ -3,8 +3,10 @@
 
 from flask import Flask, render_template, url_for, request, redirect
 from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
+from flask_wtf.csrf import CSRFProtect
 import json
 import urllib
+from db import SqliteDB
 
 with open("config.json","r") as json_file:
     data = json_file.read()
@@ -12,6 +14,7 @@ with open("config.json","r") as json_file:
 
 app = Flask(__name__)
 app.secret_key = config["sessionKey"]
+csrf = CSRFProtect(app)
 
 #login related
 login_manager = LoginManager(app) 
@@ -53,6 +56,28 @@ def login():
 def logout():  
     logout_user()  
     return redirect("/login")
+
+@app.route('/setting', methods=["GET","POST"])  
+def setting():  
+    if not current_user.is_active:
+        return {"status":"fail", "data":"permission denied"}
+
+    sqliteDB = SqliteDB()
+    if request.method == "GET":
+        data = sqliteDB.GetSetting(current_user.id)
+        if data is None:
+            return   {"status":"fail", "data":"no data"}
+        else:
+            return {"status":"ok", "data":data}
+
+    if request.method == "POST": 
+        data = {}
+        data["userID"] = current_user.id
+        data["dataset"] = request.form.get("dataset")
+        data["apiKey"] = request.form.get("apiKey")
+        sqliteDB.UpdateSetting(data)
+        return {"status":"ok","data": data}
+
 
 if __name__ == "__main__":
     app.run( )
