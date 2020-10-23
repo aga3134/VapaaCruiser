@@ -343,9 +343,10 @@ var app = new Vue({
                 info.lng = this.status.gps.lng;
             }
             var request = new ROSLIB.ServiceRequest({
-                info: JSON.stringify(info);
+                info: JSON.stringify(info)
             });
             service.callService(request, function(result) {
+                //console.log(result);
                 if(showMessage){
                     if(result.success){
                         if(saveImage) alert("儲存成功");
