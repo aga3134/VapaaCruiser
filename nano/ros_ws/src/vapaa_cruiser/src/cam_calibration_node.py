@@ -9,10 +9,12 @@ import yaml
 import json
 import numpy as np
 import os
+import rospkg
 
 class CamCalibration():
     def __init__(self):
         self.br = CvBridge()
+        rospack = rospkg.RosPack()
 
         self.gridX = rospy.get_param("~gridX",8)
         self.gridY = rospy.get_param("~gridY",6)
@@ -20,7 +22,7 @@ class CamCalibration():
         self.targetW = rospy.get_param("~targetW",640)
         self.targetH = rospy.get_param("~targetH",480)
         self.updateRate = rospy.get_param("~updateRate",30)
-        self.outputName = rospy.get_param("~outputName","../config/calibration.yml")
+        self.outputName = rospy.get_param("~outputName",rospack.get_path("vapaa_cruiser")+"/config/calibration.yml")
         self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
         self.imageNum = 0
         self.objPtArr = []
