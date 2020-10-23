@@ -14,6 +14,9 @@
     </node>
     <node name="fsm_node" pkg="vapaa_cruiser" type="fsm_node.py" output="screen">
     </node>
+    <node name="image_store_node" pkg="vapaa_cruiser" type="image_store_node.py" output="screen">
+        <param name="uploadHost" value="https://commutag.agawork.tw"/>
+    </node>
     <node name="follow_tag_node" pkg="vapaa_cruiser" type="follow_tag_node.py" output="screen">
         <param name="tagID" value="1"/>
         <param name="keepDist" value="600"/>
