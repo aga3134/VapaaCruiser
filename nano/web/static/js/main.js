@@ -24,6 +24,8 @@ var app = new Vue({
         service: {
             followTagGetParam:  {name: "/followTag/getParam", type:"vapaa_cruiser/followTagGetParam",instance:null},
             followTagSetParam:  {name: "/followTag/setParam", type:"vapaa_cruiser/followTagSetParam",instance:null},
+            storeFront: {name: "/imageStore/front", type:"vapaa_cruiser/imageStoreInfo",instance:null},
+            storeSide: {name: "/imageStore/side", type:"vapaa_cruiser/imageStoreInfo",instance:null},
         },
         imageData:{
             frontRGB: "static/image/logo.png",
@@ -208,6 +210,18 @@ var app = new Vue({
                 serviceType : this.service.followTagSetParam.type
             });
 
+            this.service.storeFront.instance = new ROSLIB.Service({
+                ros: ros,
+                name: this.service.storeFront.name,
+                serviceType : this.service.storeFront.type
+            });
+
+            this.service.storeSide.instance = new ROSLIB.Service({
+                ros: ros,
+                name: this.service.storeSide.name,
+                serviceType : this.service.storeSide.type
+            });
+
         },
         InitMap: function(){
             Vue.nextTick(function(){
@@ -298,15 +312,60 @@ var app = new Vue({
                 data: data,
                 headers: {"X-CSRF-Token": csrfToken},
                 success: function(result){
-                    console.log(result);
-                }
+                    if(result.status == "ok"){
+                        alert("更新成功");
+                    }
+                    else{
+                        alert("更新失敗");
+                    }
+                    this.openSetting = false;
+                }.bind(this)
             });
         },
-        UpdateTrajectory: function(){
-            if(this.status.gps.lat < -90 || this.status.gps.lat > 90 || this.status.gps.lng < -180 || this.status.gps.lng > 180){
-                //console.log("invalid gps: lat="+this.status.gps.lat+", lng="+this.status.gps.lng);
-                return;
+        TriggerImageStore: function(dir,saveImage,uploadImage,showMessage){
+            var service = null;
+            switch(dir){
+                case "front":
+                    service = this.service.storeFront.instance;
+                    break;
+                case "side":
+                    service = this.service.storeSide.instance;
+                    break;
             }
+            var info = {
+                dataset: this.commutag.dataset,
+                apiKey: this.commutag.apiKey,
+                saveImage: saveImage,
+                uploadImage: uploadImage
+            };
+            if(this.CheckGPSValid()){
+                info.lat = this.status.gps.lat;
+                info.lng = this.status.gps.lng;
+            }
+            var request = new ROSLIB.ServiceRequest({
+                info: JSON.stringify(info);
+            });
+            service.callService(request, function(result) {
+                if(showMessage){
+                    if(result.success){
+                        if(saveImage) alert("儲存成功");
+                        if(uploadImage) alert("上傳成功");
+                    }
+                    else{
+                        if(saveImage) alert("儲存失敗");
+                        if(uploadImage) alert("上傳失敗");
+                    }
+                }
+            }.bind(this));
+        },
+        CheckGPSValid: function(){
+            if(this.status.gps.lat < -90 || this.status.gps.lat > 90 || this.status.gps.lng < -180 || this.status.gps.lng > 180){
+                return false;
+            }
+            else return true;
+        },
+        UpdateTrajectory: function(){
+            if(!this.CheckGPSValid()) return;
             //update marker
             if(this.trajectory.marker){
                 this.trajectory.marker.setLatLng(this.status.gps);

@@ -60,7 +60,7 @@ add_service_files(
   FILES
   followTagGetParam.srv
   followTagSetParam.srv
-  imageStoreUpload.srv
+  imageStoreInfo.srv
 )
 
 ## Generate actions in the 'action' folder

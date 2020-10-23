@@ -5,7 +5,7 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage, CameraInfo
 from std_srvs.srv import Trigger, TriggerResponse
-from vapaa_cruiser.srv import imageStoreUpload
+from vapaa_cruiser.srv import imageStoreInfo
 import json
 import numpy as np
 import os
@@ -19,19 +19,15 @@ class ImageStore():
 
         self.savePath = rospy.get_param("~savePath",rospack.get_path("vapaa_cruiser")+"/save/")
         self.uploadHost = rospy.get_param("~uploadHost","https://commutag.agawork.tw")
-        self.triggerSaveFront = False
-        self.triggerSaveSide = False
-        self.triggerUploadFront = False
-        self.triggerUploadSide = False
-        self.uploadFrontInfo = None
-        self.uploadSideInfo = None
+        self.triggerFront = False
+        self.triggerSide = False
+        self.storeFrontInfo = None
+        self.storeSideInfo = None
         
         self.subFront = rospy.Subscriber("image/compressed",CompressedImage,self.RecieveFrontImage)
         self.subSide = rospy.Subscriber("/camera/color/image_raw/compressed",CompressedImage,self.RecieveSideImage)
-        self.srvSaveFront = rospy.Service("imageStore/saveFront", Trigger, self.SaveFront)
-        self.srvSaveSide = rospy.Service("imageStore/saveSide", Trigger, self.SaveSide)
-        self.srvUploadFront = rospy.Service("imageStore/uploadFront", imageStoreUpload, self.UploadFront)
-        self.srvUploadSide = rospy.Service("imageStore/uploadSide", imageStoreUpload, self.UploadSide)
+        self.srvImageStoreFront = rospy.Service("imageStore/front", imageStoreInfo, self.ImageStoreFront)
+        self.srvImageStoreFront = rospy.Service("imageStore/side", imageStoreInfo, self.ImageStoreSide)
 
     def SaveImage(self,frame,savePath):
         if not os.path.exists(savePath):
@@ -59,77 +55,48 @@ class ImageStore():
         print(response.text)
 
     def RecieveFrontImage(self,msg):
-        if not self.triggerSaveFront and not self.triggerUploadFront:
+        if not self.triggerFront:
             return
         try:
             frame = self.br.compressed_imgmsg_to_cv2(msg, "bgr8")
-            if self.triggerSaveFront:
+            if self.storeFrontInfo["saveImage"]:
                 self.SaveImage(frame,self.savePath)
-            if self.triggerUploadFront:
+            if self.storeFrontInfo["uploadImage"]:
                 self.UploadImage(frame,self.uploadFrontInfo)
         except CvBridgeError as e:
             print(e)
-
-        self.triggerSaveFront = False
-        self.triggerUploadFront = False
+        self.triggerFront = False
 
     def RecieveSideImage(self,msg):
-        if not self.triggerSaveSide and not self.triggerUploadSide:
+        if not self.triggerSide:
             return
         try:
             frame = self.br.compressed_imgmsg_to_cv2(msg, "bgr8")
-            if self.triggerSaveSide:
+            if self.storeSideInfo["saveImage"]:
                 self.SaveImage(frame,self.savePath)
-            if self.triggerUploadSide:
+            if self.storeSideInfo["uploadImage"]:
                 self.UploadImage(frame,self.uploadSideInfo)
         except CvBridgeError as e:
             print(e)
+        self.triggerSide = False
 
-        self.triggerSaveFront = False
-        self.triggerUploadFront = False
-
-    def SaveFront(self,request):
-        self.triggerSaveFront = True
-        return TriggerResponse(
-            success = True,
-            message = "schedule to save front image"
-        )
-
-    def SaveSide(self,request):
-        self.triggerSaveSide = True
-        return TriggerResponse(
-            success = True,
-            message = "schedule to save side image"
-        )
-
-    def UploadFront(self,request):
+    def ImageStoreFront(self,request):
         try:
-            self.uploadFrontInfo = json.parse(request.info)
-            self.triggerUploadFront = True
-            return TriggerResponse(
-                success = True,
-                message = "schedule to upload front image"
-            )
+            self.storeFrontInfo = json.parse(request.info)
+            print(self.storeFrontInfo)
+            self.triggerFront = True
+            return True
         except:
-            return TriggerResponse(
-                success = False,
-                message = "parse info fail"
-            )
+            return False
 
-
-    def UploadSide(self,request):
+    def ImageStoreSide(self,request):
         try:
-            self.uploadSideInfo = json.parse(request.info)
-            self.triggerUploadSide = True
-            return TriggerResponse(
-                success = True,
-                message = "schedule to upload side image"
-            )
+            self.storeSideInfo = json.parse(request.info)
+            print(self.storeSideInfo)
+            self.triggerSide = True
+            return True
         except:
-            return TriggerResponse(
-                success = False,
-                message = "parse info fail"
-            )
+            return False
 
 if __name__ == '__main__':
     rospy.init_node('image_store_node')
