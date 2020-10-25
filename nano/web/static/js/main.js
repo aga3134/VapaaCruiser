@@ -65,7 +65,10 @@ var app = new Vue({
                 saveImage: false,
                 uploadImage: false
             },
-            preview: null,
+            previewMap: null,
+            previewPath: null,
+            highlightIndex: -1,
+            highlightMarker: null,
             path: {id:null, name:"", ptArr:[]}
         },
         openSetting: false,
@@ -74,7 +77,9 @@ var app = new Vue({
     delimiters: ['[[',']]'],    //vue跟jinja的語法會衝突
     created: function(){
         this.InitROSConnection();
-        this.InitMap("map");
+        Vue.nextTick(function(){
+            this.trajectory.map = this.InitMap("map");
+        }.bind(this));
         this.loading = false;
 
         $.get("/setting",function(result){
@@ -242,16 +247,16 @@ var app = new Vue({
         InitMap: function(id,pos,zoom){
             if(!pos) pos = [23.9652,120.9674];
             if(!zoom) zoom = 19;
-            Vue.nextTick(function(){
-                this.trajectory.map = L.map(id,{
-                    zoomControl: false
-                }).setView(pos, zoom);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '<a href="https://www.openstreetmap.org/">OSM</a>',
-                    maxZoom: 19,
-                }).addTo(this.trajectory.map);
-                L.control.scale().addTo(this.trajectory.map);
-            }.bind(this));
+            
+            var map = L.map(id,{
+                zoomControl: false
+            }).setView(pos, zoom);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '<a href="https://www.openstreetmap.org/">OSM</a>',
+                maxZoom: 19,
+            }).addTo(map);
+            L.control.scale().addTo(map);
+            return map;
             
         },
         Logout: function(){
@@ -409,22 +414,31 @@ var app = new Vue({
             var temp = this.pathEditor.path.ptArr[i]
             this.pathEditor.path.ptArr[i] = this.pathEditor.path.ptArr[i-1];
             this.pathEditor.path.ptArr[i-1] = temp;
+            this.UpdatePreviewPath();
         },
         MovePathPtDown: function(i){
             if(i < 0 || i >= this.pathEditor.path.ptArr.length-1) return;
             var temp = this.pathEditor.path.ptArr[i]
             this.pathEditor.path.ptArr[i] = this.pathEditor.path.ptArr[i+1];
             this.pathEditor.path.ptArr[i+1] = temp;
+            this.UpdatePreviewPath();
         },
         DeletePathPt: function(i){
             if(i < 0 || i >= this.pathEditor.path.ptArr.length) return;
             if(confirm("確定刪除此點位？")){
                 this.pathEditor.path.ptArr.splice(i,1);
             }
+            this.UpdatePreviewPath();
         },
         EditPath: function(index){
             this.pathEditor.openSavePath = true;
-            this.InitMap("pathPreview");
+            if(!this.pathEditor.previewMap ){
+                Vue.nextTick(function(){
+                    this.pathEditor.previewMap = this.InitMap("pathPreview");
+                    this.UpdatePreviewPath();
+                }.bind(this));
+            }
+            else this.UpdatePreviewPath();
         },
         SavePath: function(){
             if(this.pathEditor.path.name == ""){
@@ -436,14 +450,49 @@ var app = new Vue({
             this.pathEditor.path.name = "";
             this.pathEditor.path.ptArr = [];
             this.pathEditor.openSavePath = false;
-            this.UpdateTrajectory();
+            this.UpdatePreviewPath();
+            
         },
         ClearPath: function(){
             if(confirm("重設後無法復原，確定重設路徑？")){
                 this.pathEditor.path.name = "";
                 this.pathEditor.path.ptArr = [];
-                this.UpdateTrajectory();
+                this.UpdatePreviewPath();
             }
+        },
+        HighlightPos: function(i){
+            this.pathEditor.highlightIndex = i;
+            this.UpdatePreviewPath();
+        },
+        UpdatePreviewPath: function(){
+            if(this.pathEditor.previewPath){
+                this.pathEditor.previewMap.removeLayer(this.pathEditor.previewPath);
+            }
+            if(this.pathEditor.highlightMarker){
+                this.pathEditor.previewMap.removeLayer(this.pathEditor.highlightMarker);
+            }
+            this.pathEditor.previewPath = L.polyline([], {color: "blue"}).addTo(this.pathEditor.previewMap);
+            var minLat = 9999, maxLat = -9999;
+            var minLng = 9999, maxLng = -9999;
+            for(var i=0;i<this.pathEditor.path.ptArr.length;i++){
+                var pt = this.pathEditor.path.ptArr[i];
+                this.pathEditor.previewPath.addLatLng({lat:pt.lat,lng:pt.lng});
+                if(pt.lat < minLat) minLat = pt.lat;
+                if(pt.lat > maxLat) maxLat = pt.lat;
+                if(pt.lng < minLng) minLng = pt.lng;
+                if(pt.lng > maxLng) maxLng = pt.lng;
+
+                if(this.pathEditor.highlightIndex == i){
+                    this.pathEditor.highlightMarker = L.marker([pt.lat,pt.lng]).addTo(this.pathEditor.previewMap); 
+                }
+            }
+            if(minLat != 9999 && maxLat != -9999 && minLng != 9999 && maxLng != -9999){
+                this.pathEditor.previewMap.fitBounds([
+                    [minLat, minLng],
+                    [maxLat, maxLng]
+                ]);
+            }
+            
         },
         UpdateTrajectory: function(){
             if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)) return;

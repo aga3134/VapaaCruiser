@@ -263,7 +263,7 @@
                             </div>
 
                             <div class="table-list">
-                                <table class="table">
+                                <table class="table table-hover">
                                     <thead>
                                     <tr>
                                         <th>編號</th>
@@ -275,7 +275,7 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr v-for="(p,i) in pathEditor.path.ptArr">
+                                    <tr v-for="(p,i) in pathEditor.path.ptArr" @click="HighlightPos(i)" @mouseover="HighlightPos(i);" @mouseout="HighlightPos(-1);">
                                         <td>[[i]]</td>
                                         <td>[[p.lat]]</td>
                                         <td>[[p.lng]]</td>
