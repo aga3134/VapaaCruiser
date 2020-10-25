@@ -52,13 +52,29 @@ var app = new Vue({
             apiKey: null,
             dataset: null
         },
+        navigation: {
+            pathList: [],
+            curPath: null,
+        },
+        pathEditor: {
+            openAddPt: false,
+            openSavePath: false,
+            addPt:{
+                lat: -9999,
+                lng: -9999,
+                saveImage: false,
+                uploadImage: false
+            },
+            preview: null,
+            path: {id:null, name:"", ptArr:[]}
+        },
         openSetting: false,
         loading: true
     },
     delimiters: ['[[',']]'],    //vue跟jinja的語法會衝突
     created: function(){
         this.InitROSConnection();
-        this.InitMap();
+        this.InitMap("map");
         this.loading = false;
 
         $.get("/setting",function(result){
@@ -223,11 +239,13 @@ var app = new Vue({
             });
 
         },
-        InitMap: function(){
+        InitMap: function(id,pos,zoom){
+            if(!pos) pos = [23.9652,120.9674];
+            if(!zoom) zoom = 19;
             Vue.nextTick(function(){
-                this.trajectory.map = L.map("map",{
+                this.trajectory.map = L.map(id,{
                     zoomControl: false
-                }).setView([23.9652,120.9674], 19);
+                }).setView(pos, zoom);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '<a href="https://www.openstreetmap.org/">OSM</a>',
                     maxZoom: 19,
@@ -338,7 +356,7 @@ var app = new Vue({
                 saveImage: saveImage,
                 uploadImage: uploadImage
             };
-            if(this.CheckGPSValid()){
+            if(this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)){
                 info.lat = this.status.gps.lat;
                 info.lng = this.status.gps.lng;
             }
@@ -359,14 +377,76 @@ var app = new Vue({
                 }
             }.bind(this));
         },
-        CheckGPSValid: function(){
-            if(this.status.gps.lat < -90 || this.status.gps.lat > 90 || this.status.gps.lng < -180 || this.status.gps.lng > 180){
+        CheckGPSValid: function(lat,lng){
+            if(lat < -90 || lat > 90 || lng < -180 || lng > 180){
                 return false;
             }
             else return true;
         },
+        OpenAddPt: function(){
+            this.pathEditor.addPt.lat = this.status.gps.lat;
+            this.pathEditor.addPt.lng = this.status.gps.lng;
+            this.pathEditor.openAddPt = true;
+        },
+        AddPosToPath: function(){
+            if(!this.CheckGPSValid(this.pathEditor.addPt.lat,this.pathEditor.addPt.lng)){
+                return alert("gps座標錯誤");
+            }
+            var pt = {};
+            pt.lat = this.pathEditor.addPt.lat;
+            pt.lng = this.pathEditor.addPt.lng;
+            pt.saveImage = this.pathEditor.addPt.saveImage;
+            pt.uploadImage = this.pathEditor.addPt.uploadImage;
+            this.pathEditor.path.ptArr.push(pt);
+
+            this.pathEditor.addPt.saveImage = false;
+            this.pathEditor.addPt.uploadImage = false;
+            this.pathEditor.openAddPt = false;
+            alert("已將點位加入路徑");
+        },
+        MovePathPtUp: function(i){
+            if(i < 1 || i >= this.pathEditor.path.ptArr.length) return;
+            var temp = this.pathEditor.path.ptArr[i]
+            this.pathEditor.path.ptArr[i] = this.pathEditor.path.ptArr[i-1];
+            this.pathEditor.path.ptArr[i-1] = temp;
+        },
+        MovePathPtDown: function(i){
+            if(i < 0 || i >= this.pathEditor.path.ptArr.length-1) return;
+            var temp = this.pathEditor.path.ptArr[i]
+            this.pathEditor.path.ptArr[i] = this.pathEditor.path.ptArr[i+1];
+            this.pathEditor.path.ptArr[i+1] = temp;
+        },
+        DeletePathPt: function(i){
+            if(i < 0 || i >= this.pathEditor.path.ptArr.length) return;
+            if(confirm("確定刪除此點位？")){
+                this.pathEditor.path.ptArr.splice(i,1);
+            }
+        },
+        EditPath: function(index){
+            this.pathEditor.openSavePath = true;
+            this.InitMap("pathPreview");
+        },
+        SavePath: function(){
+            if(this.pathEditor.path.name == ""){
+                return alert("請輸入路徑名稱");
+            }
+            if(this.pathEditor.path.ptArr.length < 2){
+                return alert("請至少加入兩個點位");
+            }
+            this.pathEditor.path.name = "";
+            this.pathEditor.path.ptArr = [];
+            this.pathEditor.openSavePath = false;
+            this.UpdateTrajectory();
+        },
+        ClearPath: function(){
+            if(confirm("重設後無法復原，確定重設路徑？")){
+                this.pathEditor.path.name = "";
+                this.pathEditor.path.ptArr = [];
+                this.UpdateTrajectory();
+            }
+        },
         UpdateTrajectory: function(){
-            if(!this.CheckGPSValid()) return;
+            if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)) return;
             //update marker
             if(this.trajectory.marker){
                 this.trajectory.marker.setLatLng(this.status.gps);

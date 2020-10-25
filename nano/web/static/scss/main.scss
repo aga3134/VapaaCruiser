@@ -235,6 +235,12 @@ html, body{
             max-width: 100%;
             background-color: #eeeeee;
             border-radius: 10px;
+
+            .table-list{
+                height: 150px;
+                width: 100%;
+                overflow: auto;
+            }
         }
     }
 

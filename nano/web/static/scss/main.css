@@ -316,6 +316,12 @@ html, body {
   border-radius: 10px;
 }
 
+.vapaa-cruiser .modal-panel .content-container .table-list {
+  height: 150px;
+  width: 100%;
+  overflow: auto;
+}
+
 .vapaa-cruiser .loading-page {
   position: fixed;
   top: 0px;
