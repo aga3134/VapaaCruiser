@@ -9,3 +9,5 @@ nano/ros_ws/src/vapaa_cruiser/save/
 config.json
 calibration.yml
 vapaa_cruiser.db
+nano/ros_ws/src/realsense-ros/
+nano/ros_ws/src/ddynamic_reconfigure/

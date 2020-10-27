@@ -90,7 +90,7 @@ class CamCalibration():
 
             dirName = os.path.dirname(self.outputName)
             if not os.path.exists(dirName):
-		os.makedirs(dirName)
+                os.makedirs(dirName)
             with open(self.outputName, "w") as f:
                 yaml.dump(output, f)
 
