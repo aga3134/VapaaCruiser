@@ -1,0 +1,10 @@
+<launch>
+    <node name="yolov5_node" pkg="yolov5" type="yolov5_node.py" output="screen">
+        <param name="weights" value="yolov5s.pt"/>
+        <param name="img_size" value="640"/>
+        <param name="conf_thres" value="0.25"/>
+        <param name="iou_thres" value="0.45"/>
+        <param name="device" value="0"/>
+        <param name="updateRate" value="30"/>
+    </node>
+</launch>

@@ -18,7 +18,7 @@ var app = new Vue({
             fsmEvent: {name: "/fsm/event",type:"std_msgs/String",instance:null},
             carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist",instance:null},
             frontRGB:  {name: "/apriltag/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null},
-            sideRGB:  {name: "/camera/color/image_raw/compressed", type:"sensor_msgs/CompressedImage",instance:null},
+            sideRGB:  {name: "/yolov5/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null},
             sideDepth:  {name: "/camera/aligned_depth_to_color/image_raw/compressedDepth", type:"sensor_msgs/CompressedImage",instance:null},
         },
         service: {

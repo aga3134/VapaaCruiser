@@ -36,7 +36,7 @@ class YoloV5():
 
         # Initialize
         set_logging()
-        self.device = select_device(self.device)
+        self.device = select_device(str(self.device))
         self.half = self.device.type != 'cpu'  # half precision only supported on CUDA
 
         # Load model
