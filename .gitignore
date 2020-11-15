@@ -11,3 +11,6 @@ calibration.yml
 vapaa_cruiser.db
 nano/ros_ws/src/realsense-ros/
 nano/ros_ws/src/ddynamic_reconfigure/
+nano/py3_ros_ws/src/vision_opencv/
+nano/py3_ros_ws/build/
+nano/py3_ros_ws/devel/

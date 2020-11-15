@@ -15,10 +15,6 @@ opt["img_size"] = 640
 opt["conf_thres"] = 0.25
 opt["iou_thres"] = 0.45
 opt["device"] = "0"
-opt["weights"] = "yolov5s.pt"
-opt["weights"] = "yolov5s.pt"
-opt["weights"] = "yolov5s.pt"
-
 
 def detect():
     image = cv2.imread("data/images/bus.jpg")
