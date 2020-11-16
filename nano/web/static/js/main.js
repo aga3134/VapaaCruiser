@@ -87,6 +87,11 @@ var app = new Vue({
             this.commutag.dataset = result.data.dataset;
             this.commutag.apiKey = result.data.apiKey;
         } .bind(this));
+
+        toastr.options = {
+            "positionClass": "toast-bottom-center",
+            "timeOut": "2500",
+        };
     },
     methods: {
         InitROSConnection: function(){
@@ -323,10 +328,10 @@ var app = new Vue({
             });
             this.service.followTagSetParam.instance.callService(request, function(result) {
                 if(result.success){
-                    alert("更新成功");
+                    toastr.success("更新成功");
                 }
                 else{
-                    alert("更新失敗");
+                    toastr.error("更新失敗");
                 }
             }.bind(this));
         },
@@ -343,10 +348,10 @@ var app = new Vue({
                 headers: {"X-CSRF-Token": csrfToken},
                 success: function(result){
                     if(result.status == "ok"){
-                        alert("更新成功");
+                        toastr.success("更新成功");
                     }
                     else{
-                        alert("更新失敗");
+                        toastr.error("更新失敗");
                     }
                     this.openSetting = false;
                 }.bind(this)
@@ -379,12 +384,12 @@ var app = new Vue({
                 //console.log(result);
                 if(showMessage){
                     if(result.success){
-                        if(saveImage) alert("儲存成功");
-                        if(uploadImage) alert("上傳成功");
+                        if(saveImage) toastr.success("儲存成功");
+                        if(uploadImage) toastr.success("上傳成功");
                     }
                     else{
-                        if(saveImage) alert("儲存失敗");
-                        if(uploadImage) alert("上傳失敗");
+                        if(saveImage) toastr.error("儲存失敗");
+                        if(uploadImage) toastr.error("上傳失敗");
                     }
                 }
             }.bind(this));
@@ -402,7 +407,7 @@ var app = new Vue({
         },
         AddPosToPath: function(){
             if(!this.CheckGPSValid(this.pathEditor.addPt.lat,this.pathEditor.addPt.lng)){
-                return alert("gps座標錯誤");
+                return toastr.error("gps座標錯誤");
             }
             var pt = {};
             pt.lat = this.pathEditor.addPt.lat;
@@ -414,7 +419,7 @@ var app = new Vue({
             this.pathEditor.addPt.saveImage = false;
             this.pathEditor.addPt.uploadImage = false;
             this.pathEditor.openAddPt = false;
-            alert("已將點位加入路徑");
+            toastr.success("已將點位加入路徑");
         },
         MovePathPtUp: function(i){
             if(i < 1 || i >= this.pathEditor.path.ptArr.length) return;
@@ -449,16 +454,35 @@ var app = new Vue({
         },
         SavePath: function(){
             if(this.pathEditor.path.name == ""){
-                return alert("請輸入路徑名稱");
+                return toastr.error("請輸入路徑名稱");
             }
             if(this.pathEditor.path.ptArr.length < 2){
-                return alert("請至少加入兩個點位");
+                return toastr.error("請至少加入兩個點位");
             }
-            this.pathEditor.path.name = "";
-            this.pathEditor.path.ptArr = [];
-            this.pathEditor.openSavePath = false;
-            this.UpdatePreviewPath();
-            
+
+            var csrfToken = $('meta[name=csrf_token]').attr('content')
+            var data = {
+                dataset: this.commutag.dataset,
+                apiKey: this.commutag.apiKey
+            };
+            $.ajax({
+                type: "POST",
+                url: "/path/create",
+                data: data,
+                headers: {"X-CSRF-Token": csrfToken},
+                success: function(result){
+                    if(result.status == "ok"){
+                        toastr.success("更新成功");
+                    }
+                    else{
+                        toastr.error("更新失敗");
+                    }
+                    this.pathEditor.path.name = "";
+                    this.pathEditor.path.ptArr = [];
+                    this.pathEditor.openSavePath = false;
+                    this.UpdatePreviewPath();
+                }.bind(this)
+            });
         },
         ClearPath: function(){
             if(confirm("重設後無法復原，確定重設路徑？")){

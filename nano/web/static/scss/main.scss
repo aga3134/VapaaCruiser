@@ -231,10 +231,16 @@ html, body{
             transform: translateX(-50%) translateY(-50%);
             width: 600px;
             padding: 10px;
-            max-height: 200%;
+            max-height: 100%;
             max-width: 100%;
             background-color: #eeeeee;
             border-radius: 10px;
+
+            .map-container{
+                .map{
+                    max-height: 300px;
+                }
+            }
 
             .table-list{
                 height: 150px;

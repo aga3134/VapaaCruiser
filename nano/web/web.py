@@ -78,6 +78,15 @@ def setting():
         sqliteDB.UpdateSetting(data)
         return {"status":"ok","data": data}
 
+@app.route('/path/create', methods=["POST"])  
+def pathCreate():
+    if request.method == "POST":
+          return {"status":"ok","data": "path create"}
+
+@app.route('/path/edit', methods=["POST"])  
+def pathEdit():
+    if request.method == "POST":
+          return {"status":"ok","data": "path edit"} 
 
 if __name__ == "__main__":
     app.run( )
