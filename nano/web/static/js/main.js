@@ -172,14 +172,21 @@ var app = new Vue({
             var joystick = $("#joystick");
             var x = evt.pageX-joystick.offset().left;
             var y = evt.pageY-joystick.offset().top;
-            var halfW = joystick.width()*0.5;
-            var halfH = joystick.height()*0.5;
+            
             //restrict pos in circle
+            /*var halfW = joystick.width()*0.5;
+            var halfH = joystick.height()*0.5;
             var r = Math.sqrt((x-halfW)*(x-halfW)+(y-halfH)*(y-halfH));
             if( r > halfW){
                 x = (x-halfW)*halfW/r+halfW;
                 y = (y-halfH)*halfH/r+halfH;
-            }
+            }*/
+            //restrict pos in rectangle
+            if(x < 0) x = 0;
+            else if(x >= joystick.width()) x = joystick.width();
+            if(y < 0) y = 0;
+            else if(y >= joystick.height()) y = joystick.height();
+
             this.joystick.x = x;
             this.joystick.y = y;
         },
