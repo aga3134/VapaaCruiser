@@ -4,6 +4,13 @@ stm32/VapaaCruiser/MDK-ARM/VapaaCruiser.uvoptx
 stm32/VapaaCruiser/MDK-ARM/VapaaCruiser/
 nano/ros_ws/build/
 nano/ros_ws/devel/
+nano/ros_ws/src/vapaa_cruiser/save/
 *.pyc
 config.json
 calibration.yml
+vapaa_cruiser.db
+nano/ros_ws/src/realsense-ros/
+nano/ros_ws/src/ddynamic_reconfigure/
+nano/py3_ros_ws/src/vision_opencv/
+nano/py3_ros_ws/build/
+nano/py3_ros_ws/devel/

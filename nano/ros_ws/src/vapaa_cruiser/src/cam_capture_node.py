@@ -8,12 +8,14 @@ from std_msgs.msg import Empty
 import datetime
 import os
 import yaml
+import rospkg
 
 class CamCapture():
     def __init__(self):
         self.K = None
         self.D = None
-        configFile = rospy.get_param("~configFile","config/calibration.yml")
+        rospack = rospkg.RosPack()
+        configFile = rospy.get_param("~configFile",rospack.get_path("vapaa_cruiser")+"/config/calibration.yml")
         if os.path.isfile(configFile):
             with open(configFile) as f:
                 config = yaml.load(f)
@@ -22,6 +24,7 @@ class CamCapture():
                 self.K = config["camera_matrix"]["data"]
                 self.D = config["distortion_coefficients"]["data"]
         else:
+            rospy.loginfo("config file %s not found" % (configFile))
             self.width = rospy.get_param("~width",640)
             self.height = rospy.get_param("~height",480)
 

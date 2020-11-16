@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="ws_host" content="{{config.ws.host}}" />
         <meta name="ws_port" content="{{config.ws.port}}" />
+        <meta name="csrf_token" content="{{csrf_token()}}" />
         <title>{{config.web.title}}</title>
         <link rel="icon" href="static/image/logo.png">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
@@ -18,7 +19,7 @@
                 <img class="icon" src="static/image/logo.png">
                 <div class="title">田間巡航艦</div>
                 <div class="spacer"></div>
-                <button type="button" class="btn btn-dark mx-2" @click="Logout();">設定</button>
+                <button type="button" class="btn btn-dark mx-2" @click="openSetting = true;">設定</button>
             </div>
             
             <div id="mainContent" class="container-fluid text-center main-content">
@@ -27,6 +28,48 @@
                         <div class="card h-100">
                             <div class="map-container">
                                 <div class="map" id="map"></div>
+                                <div class="pos-top-left" data-toggle="tooltip" title="左前方測距">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usFL.indicator=='safe',
+                                        warn: status.usFL.indicator=='warn',
+                                        danger: status.usFL.indicator=='danger',
+                                    }"></div>
+                                </div>
+                                <div class="pos-top" data-toggle="tooltip" title="前方測距">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usF.indicator=='safe',
+                                        warn: status.usF.indicator=='warn',
+                                        danger: status.usF.indicator=='danger',
+                                    }"></div>
+                                </div>
+                                <div class="pos-top-right" data-toggle="tooltip" title="右前方測距">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usFR.indicator=='safe',
+                                        warn: status.usFR.indicator=='warn',
+                                        danger: status.usFR.indicator=='danger',
+                                    }"></div>
+                                </div>
+                                <div class="pos-bottom-left" data-toggle="tooltip" title="左後方測距">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usBL.indicator=='safe',
+                                        warn: status.usBL.indicator=='warn',
+                                        danger: status.usBL.indicator=='danger',
+                                    }"></div>
+                                </div>
+                                <div class="pos-bottom" data-toggle="tooltip" title="後方測距">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usB.indicator=='safe',
+                                        warn: status.usB.indicator=='warn',
+                                        danger: status.usB.indicator=='danger',
+                                    }"></div>
+                                </div>
+                                <div class="pos-bottom-right" data-toggle="tooltip" title="右後方測距">
+                                    <div class="us-indicator" :class="{
+                                        safe: status.usBR.indicator=='safe',
+                                        warn: status.usBR.indicator=='warn',
+                                        danger: status.usBR.indicator=='danger',
+                                    }"></div>
+                                </div>
                             </div>
                             <div class="card-footer">
                                 <div class="card-title">路徑</div>
@@ -42,6 +85,16 @@
                                 <div class="card-title">前鏡頭</div>
                             </div>
                         </div>
+                        <div class="pos-top">
+                            <div class="d-flex justify-content-center align-items-center">
+                                <div class="material-icons btn p-1 m-2 bg-primary text-white rounded-circle"
+                                    data-toggle="tooltip" title="儲存影像"
+                                    @click="TriggerImageStore('front',true,false,true);">save</div>
+                                <div class="material-icons btn p-1 m-2 bg-primary text-white rounded-circle"
+                                    data-toggle="tooltip" title="上傳影像"
+                                    @click="TriggerImageStore('front',false,true,true);">cloud_upload</div> 
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-md">
@@ -51,6 +104,16 @@
                                 <div class="card-title">側鏡頭</div>
                             </div>
                         </div>
+                        <div class="pos-top">
+                            <div class="d-flex justify-content-center align-items-center">
+                                <div class="material-icons btn p-1 m-2 bg-primary text-white rounded-circle"
+                                    data-toggle="tooltip" title="儲存影像"
+                                    @click="TriggerImageStore('side',true,false,true);">save</div>
+                                <div class="material-icons btn p-1 m-2 bg-primary text-white rounded-circle"
+                                    data-toggle="tooltip" title="上傳影像"    
+                                    @click="TriggerImageStore('side',false,true,true);">cloud_upload</div> 
+                            </div>
+                        </div>
                     </div>
 
                     <div class="w-100 mb-5"></div>
@@ -58,12 +121,12 @@
                 </div>
             </div>
             <div class="action-bar">
-                <button type="button" class="btn btn-dark mx-2" :class="{active: action=='manual'}" @click="ChangeAction('manual');">手動巡航</button>
-                <button type="button" class="btn btn-dark mx-2" :class="{active: action=='follow'}" @click="ChangeAction('follow');">跟隨模式</button>
-                <button type="button" class="btn btn-dark mx-2" :class="{active: action=='auto'}" @click="ChangeAction('auto');">自動巡航</button>
+                <button type="button" class="btn btn-dark mx-2" :class="{active: status.robotState=='JOYSTICK_CONTROL'}" @click="FSMTransition('joystick_control');">手動巡航</button>
+                <button type="button" class="btn btn-dark mx-2" :class="{active: status.robotState=='FOLLOW_TAG'}" @click="FSMTransition('follow_tag');">跟隨模式</button>
+                <button type="button" class="btn btn-dark mx-2" :class="{active: status.robotState=='AUTO_NAVIGATION'}" @click="FSMTransition('auto_navigation');">自動巡航</button>
             </div>
 
-            <div class="bottom-panel" :class="{open: action=='manual' }">
+            <div class="bottom-panel" :class="{open: status.robotState=='JOYSTICK_CONTROL' }">
                 <div class="d-flex justify-content-around align-items-center h-100">
                     <div id="joystick" class="joystick" v-touch:start="StartJoystick" v-touch:end="StopJoystick" v-touch:moving="MoveJoystick">
                         <div class="arrow-up"></div>
@@ -75,12 +138,17 @@
                     </div>
                     
                     <div class="d-flex flex-column">
-                        <div class="btn btn-dark m-2">
+                        <div class="btn btn-dark m-2" @click="OpenAddPt();">
                             <div class="d-flex align-items-center">
-                                <span class="material-icons">place</span> 新增定位點
+                                <span class="material-icons">place</span> 加入點位
                             </div>
                         </div>
-                        <div class="btn btn-dark m-2" @click="ChangeAction('');">
+                        <div class="btn btn-dark m-2" @click="EditPath();">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons">timeline</span> 儲存路徑
+                            </div>
+                        </div>
+                        <div class="btn btn-dark m-2" @click="FSMTransition('abort');">
                             <div class="d-flex align-items-center">
                                 <span class="material-icons">close</span> 結束巡航
                             </div>
@@ -89,22 +157,185 @@
                 </div>
             </div>
 
-            <div class="bottom-panel" :class="{open: action=='follow' }">
-                <div class="btn" @click="ChangeAction('');">結束跟隨</div>
-            </div>
+            <div class="bottom-panel" :class="{open: status.robotState=='FOLLOW_TAG' }">
+                <div class="d-flex justify-content-around align-items-center h-100">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">追蹤ID</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="追蹤標籤編號" v-model="followTag.tagID">
+                        </div>
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">距離</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="要保持的距離(mm)" v-model="followTag.distance">
+                        </div>
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">誤差</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="可容忍誤差(mm)" v-model="followTag.tolerance">
+                        </div>
+                    </div>
 
-            <div class="modal-panel" v-show="action=='auto' ">
-                <div class="content-container">
-                    <div class="btn" @click="ChangeAction('');">關閉</div>
+                    <div class="d-flex flex-column align-items-center flex-shrink-0">
+                        <div class="btn btn-dark m-2" @click="UpdateFollowTagParam();">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons">settings</span> 更新參數
+                            </div>
+                        </div>
+                        <div class="btn btn-dark m-2" @click="FSMTransition('abort');">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons">close</span> 結束跟隨
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
+            <transition name="fade">
+                <div class="modal-panel" v-show="status.robotState=='AUTO_NAVIGATION' ">
+                    <div class="content-container">
+                        <div class="btn" @click="FSMTransition('abort');">關閉</div>
+                    </div>
+                </div>
+            </transition>
+
+            <transition name="fade">
+                <div class="modal-panel" v-show="pathEditor.openAddPt">
+                    <div class="content-container">
+                        <h5 class="text-center">加入點位</h5>
+
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">緯度</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="緯度座標" v-model="pathEditor.addPt.lat">
+                        </div>
+
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">經度</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="經度座標" v-model="pathEditor.addPt.lng">
+                        </div>
+                        
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">動作設定</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="mx-3">
+                                    儲存影像 <input type="checkbox"  v-model="pathEditor.addPt.saveImage">
+                                </div>
+                                <div class="mx-3">
+                                    上傳影像 <input type="checkbox"  v-model="pathEditor.addPt.uploadImage">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center">
+                            <div class="btn" @click="AddPosToPath();">加入</div>
+                            <div class="btn" @click="pathEditor.openAddPt = false;">取消</div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+
+            <transition name="fade">
+                <div class="modal-panel" v-show="pathEditor.openSavePath">
+                    <div class="content-container">
+                        <h5 class="text-center">儲存路徑</h5>
+
+                        <div class="d-flex flex-column align-items-center">
+                            <div class="map-container">
+                                <div class="map" id="pathPreview"></div>
+                             </div>
+
+                             <div class="input-group p-1">
+                                <div class="input-group-prepend">
+                                  <span class="input-group-text">路徑名稱</span>
+                                </div>
+                                <input type="text" class="form-control" placeholder="輸入路徑名稱" v-model="pathEditor.path.name">
+                            </div>
+
+                            <div class="table-list">
+                                <table class="table table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th>編號</th>
+                                        <th>緯度</th>
+                                        <th>精度</th>
+                                        <th>儲存影像</th>
+                                        <th>上傳影像</th>
+                                        <th></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr v-for="(p,i) in pathEditor.path.ptArr" @click="HighlightPos(i)" @mouseover="HighlightPos(i);" @mouseout="HighlightPos(-1);">
+                                        <td>[[i]]</td>
+                                        <td>[[p.lat]]</td>
+                                        <td>[[p.lng]]</td>
+                                        <td><input type="checkbox" v-model="p.saveImage"></td>
+                                        <td><input type="checkbox" v-model="p.uploadImage"></td>
+                                        <td>
+                                            <span class="btn material-icons p-1" @click="MovePathPtUp(i);">arrow_upward</span> 
+                                            <span class="btn material-icons p-1" @click="MovePathPtDown(i);">arrow_downward</span> 
+                                            <span class="btn material-icons p-1" @click="DeletePathPt(i);">close</span> 
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                             </div>
+
+                        </div>
+
+                        <div class="d-flex justify-content-center">
+                            <div class="btn" @click="SavePath();">儲存</div>
+                            <div class="btn" @click="ClearPath();">重設</div>
+                            <div class="btn" @click="pathEditor.openSavePath = false;">取消</div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+
+            <transition name="fade">
+                <div class="modal-panel" v-show="openSetting">
+                    <div class="content-container">
+                        <h5 class="text-center m-2">群眾標註設定</h5>
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">資料集ID</span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="群眾標註資料集ID" v-model="commutag.dataset">
+                        </div>
+
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">API金鑰</span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="群眾標註API金鑰" v-model="commutag.apiKey">
+                        </div>
+
+                        <div class="d-flex justify-content-center align-items-center">
+                            <div class="btn" @click="SaveSetting();">儲存</div>
+                            <div class="btn" @click="openSetting = false;">取消</div>
+                            <div class="btn" @click="Logout();">登出</div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+            
             <div class="loading-page" v-show="loading">
                 <div class="logo-container">
                     <img class="logo" src="static/image/logo.png">
                     <h3 class="text-center m-2">田間巡航艦</h3>
                 </div>
             </div>
+            
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>

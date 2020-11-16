@@ -12,7 +12,8 @@
             <div class="row justify-content-center">
                 <div class="col col-sm-6 col-md-4">
                     <form class="card border-0" action="/login" method="post">
-                        <img class="card-img-top" src="/static/image/logo.png">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+			<img class="card-img-top" src="/static/image/logo.png">
                         <h3 class="card-title text-center m-3">登入田間巡航艦</h3>
                         <table class="table table-borderless">
                             <tr>

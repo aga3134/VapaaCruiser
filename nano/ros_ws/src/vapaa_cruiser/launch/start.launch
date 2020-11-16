@@ -10,8 +10,22 @@
         <param name="baud" value="115200"/>
     </node>
     <node name="apriltag_node" pkg="vapaa_cruiser" type="apriltag_node.py" output="screen">
-        <param name="tagSize" value="30"/>
+        <param name="tagSize" value="171"/>
     </node>
+    <node name="fsm_node" pkg="vapaa_cruiser" type="fsm_node.py" output="screen">
+    </node>
+    <node name="image_store_node" pkg="vapaa_cruiser" type="image_store_node.py" output="screen">
+        <param name="uploadHost" value="https://commutag.agawork.tw"/>
+    </node>
+    <node name="follow_tag_node" pkg="vapaa_cruiser" type="follow_tag_node.py" output="screen">
+        <param name="tagID" value="1"/>
+        <param name="keepDist" value="600"/>
+        <param name="distTolerance" value="100"/>
+        <param name="minAngle" value="-0.78539815"/>
+        <param name="maxAngle" value="0.78539815"/>
+        <param name="speedScale" value="0.000015"/>
+    </node>
+
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="align_depth" value="true"/>
         <arg name="color_width" value="320"/>
@@ -19,7 +33,7 @@
         <arg name="depth_width" value="640"/>
         <arg name="depth_height" value="480"/>
     </include>
-        <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" > 
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" > 
         <arg name="port" value="9090"/>
     </include>
 </launch>
