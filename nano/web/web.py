@@ -81,12 +81,30 @@ def setting():
 @app.route('/path/create', methods=["POST"])  
 def pathCreate():
     if request.method == "POST":
-          return {"status":"ok","data": "path create"}
+        sqliteDB = SqliteDB()
+        sqliteDB.CreateNavigationPath(current_user.id, request.form.get("path"))
+        return {"status":"ok","data": "path created"}
 
 @app.route('/path/edit', methods=["POST"])  
 def pathEdit():
     if request.method == "POST":
-          return {"status":"ok","data": "path edit"} 
+        sqliteDB = SqliteDB()
+        sqliteDB.EditNavigationPath(current_user.id, request.form.get("path"))
+        return {"status":"ok","data": "path updated"}
+
+@app.route('/path/list', methods=["GET"])  
+def pathList():
+    if request.method == "GET":
+        sqliteDB = SqliteDB()
+        result = sqliteDB.ListNavigationPath(current_user.id)
+        return {"status":"ok","data": result}
+
+@app.route('/path/delete', methods=["POST"])  
+def pathDelete():
+    if request.method == "POST":
+        sqliteDB = SqliteDB()
+        sqliteDB.DeleteNavigationPath(current_user.id, request.form.get("pathID"))
+        return {"status":"ok","data": "path deleted"}
 
 if __name__ == "__main__":
     app.run( )

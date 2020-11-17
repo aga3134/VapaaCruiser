@@ -197,10 +197,55 @@
                 </div>
             </div>
 
+            <div class="bottom-panel" :class="{open: status.robotState=='AUTO_NAVIGATION' }">
+                <div class="d-flex justify-content-around align-items-center h-100">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">路徑</span>
+                            </div>
+                            <div class="m-2">[[navigation.curPath?(navigation.pause?"暫停":navigation.curPath.path.name):"停止"]]</div>
+                        </div>
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">循環</span>
+                            </div>
+                            <input class="m-2" type="checkbox" v-model="navigation.loop">
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column align-items-center flex-shrink-0">
+                        <div class="btn btn-dark m-2" @click="OpenPathSelect();">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons">timeline</span> 選擇路徑
+                            </div>
+                        </div>
+                        <div class="btn btn-dark m-2" @click="FSMTransition('abort');">
+                            <div class="d-flex align-items-center">
+                                <span class="material-icons">close</span> 結束巡園
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
             <transition name="fade">
-                <div class="modal-panel" v-show="status.robotState=='AUTO_NAVIGATION' ">
+                <div class="modal-panel" v-show="navigation.openPathSelect">
                     <div class="content-container">
-                        <div class="btn" @click="FSMTransition('abort');">關閉</div>
+                        <h5 class="text-center">選擇路徑</h5>
+
+                        <button type="button" class="btn btn-secondary m-2" @click="SelectPath(-1);">停止</button>
+
+                        <button type="button" class="btn btn-secondary m-2"
+                            v-for="(p,i) in navigation.pathList"
+                            @click="SelectPath(i);" >
+                            [[p.path.name]]
+                        </button>
+
+                        <div class="d-flex justify-content-center">
+                            <div class="btn" @click="ResumePath();">繼續</div>
+                        </div>
                     </div>
                 </div>
             </transition>
@@ -296,7 +341,7 @@
 
                         <div class="d-flex justify-content-center">
                             <div class="btn" @click="SavePath();">儲存</div>
-                            <div class="btn" @click="ClearPath();">重設</div>
+                            <div class="btn" @click="ResetPath();">重設</div>
                             <div class="btn" @click="pathEditor.openSavePath = false;">取消</div>
                         </div>
                     </div>

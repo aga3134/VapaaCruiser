@@ -53,8 +53,12 @@ var app = new Vue({
             dataset: null
         },
         navigation: {
+            openPathSelect: false,
             pathList: [],
+            selectIndex: -1,
             curPath: null,
+            loop: false,
+            pause: false
         },
         pathEditor: {
             openAddPt: false,
@@ -158,6 +162,14 @@ var app = new Vue({
             });
             this.topic.fsmState.instance.subscribe(function(msg) {
                 this.status.robotState = msg.data;
+                switch(this.status.robotState){
+                    case "JOYSTICK_CONTROL":
+                        break;
+                    case "FOLLOW_TAG":
+                        break;
+                    case "AUTO_NAVIGATION":
+                        break;
+                }
             }.bind(this));
 
             this.topic.frontRGB.instance = new ROSLIB.Topic({
@@ -462,34 +474,53 @@ var app = new Vue({
 
             var csrfToken = $('meta[name=csrf_token]').attr('content')
             var data = {
-                dataset: this.commutag.dataset,
-                apiKey: this.commutag.apiKey
+                path: JSON.stringify(this.pathEditor.path),
             };
-            $.ajax({
-                type: "POST",
-                url: "/path/create",
-                data: data,
-                headers: {"X-CSRF-Token": csrfToken},
-                success: function(result){
-                    if(result.status == "ok"){
-                        toastr.success("更新成功");
-                    }
-                    else{
-                        toastr.error("更新失敗");
-                    }
-                    this.pathEditor.path.name = "";
-                    this.pathEditor.path.ptArr = [];
-                    this.pathEditor.openSavePath = false;
-                    this.UpdatePreviewPath();
-                }.bind(this)
-            });
+            if(!this.pathEditor.path.id){
+                $.ajax({
+                    type: "POST",
+                    url: "/path/create",
+                    data: data,
+                    headers: {"X-CSRF-Token": csrfToken},
+                    success: function(result){
+                        if(result.status == "ok"){
+                            toastr.success("新增成功");
+                            this.ClearPath();
+                        }
+                        else{
+                            toastr.error("新增失敗");
+                        }
+                    }.bind(this)
+                });
+            }
+            else{
+                $.ajax({
+                    type: "POST",
+                    url: "/path/edit",
+                    data: data,
+                    headers: {"X-CSRF-Token": csrfToken},
+                    success: function(result){
+                        if(result.status == "ok"){
+                            toastr.success("更新成功");
+                            this.ClearPath();
+                        }
+                        else{
+                            toastr.error("更新失敗");
+                        }
+                    }.bind(this)
+                });
+            }
+        },
+        ResetPath: function(){
+            if(confirm("重設後無法復原，確定重設路徑？")){
+                this.ClearPath();
+            }
         },
         ClearPath: function(){
-            if(confirm("重設後無法復原，確定重設路徑？")){
-                this.pathEditor.path.name = "";
-                this.pathEditor.path.ptArr = [];
-                this.UpdatePreviewPath();
-            }
+            this.pathEditor.path.name = "";
+            this.pathEditor.path.ptArr = [];
+            this.pathEditor.openSavePath = false;
+            this.UpdatePreviewPath();
         },
         HighlightPos: function(i){
             this.pathEditor.highlightIndex = i;
@@ -549,6 +580,28 @@ var app = new Vue({
                 }
                 
             }
+        },
+        OpenPathSelect: function(){
+            this.navigation.openPathSelect = true;
+            this.navigation.pause = true;
+            $.get("/path/list", function(result){
+                if(result.status != "ok") return toastr.error("讀取路徑失敗");
+                this.navigation.pathList = result.data;
+            }.bind(this));
+        },
+        SelectPath: function(i){
+            this.navigation.curPath = null;
+            this.navigation.selectIndex = -1;
+            this.navigation.openPathSelect = false;
+            if(i<0 || i>= this.navigation.pathList.length) return;
+            
+            this.navigation.curPath = this.navigation.pathList[i];
+            this.navigation.selectIndex = i;
+            this.navigation.pause = false;
+        },
+        ResumePath: function(){
+            this.navigation.pause = false;
+            this.navigation.openPathSelect = false;
         },
 
     }
