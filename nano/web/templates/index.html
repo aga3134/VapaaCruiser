@@ -204,13 +204,17 @@
                             <div class="input-group-prepend">
                               <span class="input-group-text">路徑</span>
                             </div>
-                            <div class="m-2">[[navigation.curPath?(navigation.pause?"暫停":navigation.curPath.path.name):"停止"]]</div>
+                            <div class="m-2">[[navigation.curPath?(navigation.pause?"暫停":navigation.curPath.path.name):"無"]]</div>
                         </div>
-                        <div class="input-group p-1">
-                            <div class="input-group-prepend">
-                              <span class="input-group-text">循環</span>
+
+                        <div class="d-flex align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="">循環</div>
+                                <input class="m-2" type="checkbox" v-model="navigation.loop">
                             </div>
-                            <input class="m-2" type="checkbox" v-model="navigation.loop">
+                            <div class="material-icons btn p-1" v-show="navigation.curPath && navigation.pause" @click="navigation.pause = false;">play_arrow</div>
+                            <div class="material-icons btn p-1" v-show="navigation.curPath && !navigation.pause" @click="navigation.pause = true;">pause</div>
+                            <div class="material-icons btn p-1" v-show="navigation.curPath" @click="SelectPath(-1)">close</div>
                         </div>
                     </div>
 
@@ -234,14 +238,13 @@
                 <div class="modal-panel" v-show="navigation.openPathSelect">
                     <div class="content-container">
                         <h5 class="text-center">選擇路徑</h5>
-
-                        <button type="button" class="btn btn-secondary m-2" @click="SelectPath(-1);">停止</button>
-
-                        <button type="button" class="btn btn-secondary m-2"
-                            v-for="(p,i) in navigation.pathList"
-                            @click="SelectPath(i);" >
-                            [[p.path.name]]
-                        </button>
+                        <div class="d-flex justify-content-center flex-wrap m-1 p-1 border border-secondary rounded" v-for="(p,i) in navigation.pathList">
+                            <div class="m-1 flex-grow-1">[[p.path.name]]</div>
+                            <div class="d-flex justify-content-center m-1">
+                                <a href="#" class="card-link" @click="SelectPath(i);">開始巡航</a>
+                                <a href="#" class="card-link" @click="DeletePath(i);">刪除路徑</a>
+                            </div>
+                        </div>
 
                         <div class="d-flex justify-content-center">
                             <div class="btn" @click="ResumePath();">繼續</div>

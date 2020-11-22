@@ -603,6 +603,34 @@ var app = new Vue({
             this.navigation.pause = false;
             this.navigation.openPathSelect = false;
         },
+        DeletePath: function(i){
+            this.navigation.curPath = null;
+            this.navigation.selectIndex = -1;
+            if(i<0 || i>= this.navigation.pathList.length) return;
+            
+            if(confirm("刪除後無法復原，確定刪除路徑？")){
+                var csrfToken = $('meta[name=csrf_token]').attr('content')
+                var data = {
+                    pathID: this.navigation.pathList[i].id,
+                };
+                $.ajax({
+                    type: "POST",
+                    url: "/path/delete",
+                    data: data,
+                    headers: {"X-CSRF-Token": csrfToken},
+                    success: function(result){
+                        if(result.status == "ok"){
+                            toastr.success("刪除成功");
+                            this.navigation.pathList.splice(i,1);
+                        }
+                        else{
+                            toastr.error("刪除失敗");
+                        }
+                    }.bind(this)
+                });
+            }
+            
+        },
 
     }
 });
