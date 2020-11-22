@@ -93,7 +93,7 @@ var app = new Vue({
         } .bind(this));
 
         toastr.options = {
-            "positionClass": "toast-bottom-center",
+            "positionClass": "toast-top-center",
             "timeOut": "2500",
         };
     },

@@ -254,47 +254,6 @@
             </transition>
 
             <transition name="fade">
-                <div class="modal-panel" v-show="pathEditor.openAddPt">
-                    <div class="content-container">
-                        <h5 class="text-center">加入點位</h5>
-
-                        <div class="input-group p-1">
-                            <div class="input-group-prepend">
-                              <span class="input-group-text">緯度</span>
-                            </div>
-                            <input type="number" class="form-control" placeholder="緯度座標" v-model="pathEditor.addPt.lat">
-                        </div>
-
-                        <div class="input-group p-1">
-                            <div class="input-group-prepend">
-                              <span class="input-group-text">經度</span>
-                            </div>
-                            <input type="number" class="form-control" placeholder="經度座標" v-model="pathEditor.addPt.lng">
-                        </div>
-                        
-                        <div class="input-group p-1">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">動作設定</span>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <div class="mx-3">
-                                    儲存影像 <input type="checkbox"  v-model="pathEditor.addPt.saveImage">
-                                </div>
-                                <div class="mx-3">
-                                    上傳影像 <input type="checkbox"  v-model="pathEditor.addPt.uploadImage">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-center">
-                            <div class="btn" @click="AddPosToPath();">加入</div>
-                            <div class="btn" @click="pathEditor.openAddPt = false;">取消</div>
-                        </div>
-                    </div>
-                </div>
-            </transition>
-
-            <transition name="fade">
                 <div class="modal-panel" v-show="pathEditor.openSavePath">
                     <div class="content-container">
                         <h5 class="text-center">儲存路徑</h5>
@@ -340,12 +299,59 @@
                                 </table>
                              </div>
 
+                             <div class="btn btn-dark m-2" @click="OpenAddPt();">
+                                <div class="d-flex align-items-center">
+                                    <span class="material-icons">place</span> 加入點位
+                                </div>
+                            </div>
+
                         </div>
 
                         <div class="d-flex justify-content-center">
                             <div class="btn" @click="SavePath();">儲存</div>
                             <div class="btn" @click="ResetPath();">重設</div>
                             <div class="btn" @click="pathEditor.openSavePath = false;">取消</div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+
+            <transition name="fade">
+                <div class="modal-panel" v-show="pathEditor.openAddPt">
+                    <div class="content-container">
+                        <h5 class="text-center">加入點位</h5>
+
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">緯度</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="緯度座標" v-model="pathEditor.addPt.lat">
+                        </div>
+
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">經度</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="經度座標" v-model="pathEditor.addPt.lng">
+                        </div>
+                        
+                        <div class="input-group p-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">動作設定</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="mx-3">
+                                    儲存影像 <input type="checkbox"  v-model="pathEditor.addPt.saveImage">
+                                </div>
+                                <div class="mx-3">
+                                    上傳影像 <input type="checkbox"  v-model="pathEditor.addPt.uploadImage">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center">
+                            <div class="btn" @click="AddPosToPath();">加入</div>
+                            <div class="btn" @click="pathEditor.openAddPt = false;">取消</div>
                         </div>
                     </div>
                 </div>
