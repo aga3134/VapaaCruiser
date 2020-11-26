@@ -4,6 +4,7 @@ var app = new Vue({
         connectState: "",
         status:  {
             robotState: "",
+            angle: 0,
             gps: {lat: null, lng: null},
             usFL:{dist: -1, indicator:""},
             usF:{dist: -1, indicator:""},
@@ -32,12 +33,6 @@ var app = new Vue({
             sideRGB: "static/image/logo.png",
             sideDepth: "static/image/logo.png"
         },
-        trajectory:{
-            map: null,
-            path: null,
-            marker: null,
-            lastUpdate: null
-        },
         joystick: {
             touch: false,
             x: 0,
@@ -53,6 +48,8 @@ var app = new Vue({
             dataset: null
         },
         navigation: {
+            map: null,
+            posMarker: null,
             openPathSelect: false,
             pathList: [],
             selectIndex: -1,
@@ -82,7 +79,7 @@ var app = new Vue({
     created: function(){
         this.InitROSConnection();
         Vue.nextTick(function(){
-            this.trajectory.map = this.InitMap("map");
+            this.navigation.map = this.InitMap("map");
         }.bind(this));
         this.loading = false;
 
@@ -125,9 +122,13 @@ var app = new Vue({
                 messageType : this.topic.carState.type
             });
             this.topic.carState.instance.subscribe(function(msg) {
+                var preLat = this.status.gps.lat;
+                var preLng = this.status.gps.lng;
+
                 var arr = msg.data.split(",")
                 this.status.gps.lat = parseFloat(arr[0]);
                 this.status.gps.lng = parseFloat(arr[1]);
+                
                 this.status.usFL.dist = parseFloat(arr[2]);
                 this.status.usF.dist = parseFloat(arr[3]);
                 this.status.usFR.dist = parseFloat(arr[4]);
@@ -148,11 +149,15 @@ var app = new Vue({
                 this.status.usB.indicator = ComputeIndicator(this.status.usB.dist);
                 this.status.usBR.indicator = ComputeIndicator(this.status.usBR.dist);
 
-                //var t = spacetime.now();
-                //this.status.gps.lat = 23.5+Math.sin(t.millisecond());
-                //this.status.gps.lng = 121+Math.cos(t.millisecond());
+                var t = spacetime.now();
+                var r = 0.0001, w = 0.002*Math.PI;
+                this.status.gps.lat = 23.9652+r*Math.sin(w*t.millisecond());
+                this.status.gps.lng = 120.9674+r*Math.cos(w*t.millisecond());
 
-                this.UpdateTrajectory();
+                var latDiff = this.status.gps.lat-preLat;
+                var lngDiff = this.status.gps.lng-preLng;
+                this.status.angle = Math.atan2(-latDiff,lngDiff)*180/Math.PI;
+                this.UpdateNavigation();
             }.bind(this));
 
             this.topic.fsmState.instance = new ROSLIB.Topic({
@@ -273,8 +278,8 @@ var app = new Vue({
                 maxZoom: 19,
             }).addTo(map);
             L.control.scale().addTo(map);
+
             return map;
-            
         },
         Logout: function(){
             if(confirm("確定登出？")){
@@ -556,18 +561,23 @@ var app = new Vue({
             }
             
         },
-        UpdateTrajectory: function(){
+        UpdateNavigation: function(){
             if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)) return;
             //update marker
-            if(this.trajectory.marker){
-                this.trajectory.marker.setLatLng(this.status.gps);
+            if(this.navigation.posMarker){
+                this.navigation.posMarker.setAngle(this.status.angle);
+                this.navigation.posMarker.setLatLng(this.status.gps);
             }
             else{
-                this.trajectory.marker = L.marker(this.status.gps);
-                this.trajectory.marker.addTo(this.trajectory.map);
+                //this.navigation.posMarker = L.marker(this.status.gps).addTo(this.navigation.map);
+                var icon = L.svgIcon({
+                    svgID: "carPos",
+                    iconSize: [25,25],
+                });
+                this.navigation.posMarker = L.svgMarker(this.status.gps, {icon:icon}).addTo(this.navigation.map);
             }
             //update trajectory
-            if(!this.trajectory.path){
+            /*if(!this.trajectory.path){
                 this.trajectory.path = L.polyline([], {color: "red"}).addTo(this.trajectory.map);
                 this.trajectory.path.addLatLng(this.status.gps);
                 this.trajectory.lastUpdate = spacetime.now();
@@ -579,7 +589,7 @@ var app = new Vue({
                     this.trajectory.lastUpdate = curTime;
                 }
                 
-            }
+            }*/
         },
         OpenPathSelect: function(){
             this.navigation.openPathSelect = true;
