@@ -6,6 +6,7 @@ var app = new Vue({
             robotState: "",
             angle: 0,
             gps: {lat: null, lng: null},
+            preGPS: {lat:null, lng: null},
             usFL:{dist: -1, indicator:""},
             usF:{dist: -1, indicator:""},
             usFR:{dist: -1, indicator:""},
@@ -50,10 +51,13 @@ var app = new Vue({
         navigation: {
             map: null,
             posMarker: null,
+            targetMarker: null,
+            pathLine: null,
             openPathSelect: false,
             pathList: [],
             selectIndex: -1,
             curPath: null,
+            curTargetIndex: -1,
             loop: false,
             pause: false
         },
@@ -122,8 +126,8 @@ var app = new Vue({
                 messageType : this.topic.carState.type
             });
             this.topic.carState.instance.subscribe(function(msg) {
-                var preLat = this.status.gps.lat;
-                var preLng = this.status.gps.lng;
+                this.status.preGPS.lat = this.status.gps.lat;
+                this.status.preGPS.lng = this.status.gps.lng;
 
                 var arr = msg.data.split(",")
                 this.status.gps.lat = parseFloat(arr[0]);
@@ -149,14 +153,7 @@ var app = new Vue({
                 this.status.usB.indicator = ComputeIndicator(this.status.usB.dist);
                 this.status.usBR.indicator = ComputeIndicator(this.status.usBR.dist);
 
-                var t = spacetime.now();
-                var r = 0.0001, w = 0.002*Math.PI;
-                this.status.gps.lat = 23.9652+r*Math.sin(w*t.millisecond());
-                this.status.gps.lng = 120.9674+r*Math.cos(w*t.millisecond());
-
-                var latDiff = this.status.gps.lat-preLat;
-                var lngDiff = this.status.gps.lng-preLng;
-                this.status.angle = Math.atan2(-latDiff,lngDiff)*180/Math.PI;
+                this.AutoDrive();
                 this.UpdateNavigation();
             }.bind(this));
 
@@ -563,7 +560,12 @@ var app = new Vue({
         },
         UpdateNavigation: function(){
             if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)) return;
-            //update marker
+
+            //update pos marker
+            var latDiff = this.status.gps.lat-this.status.preGPS.lat;
+            var lngDiff = this.status.gps.lng-this.status.preGPS.lng;
+            this.status.angle = Math.atan2(-latDiff,lngDiff)*180/Math.PI;
+
             if(this.navigation.posMarker){
                 this.navigation.posMarker.setAngle(this.status.angle);
                 this.navigation.posMarker.setLatLng(this.status.gps);
@@ -576,20 +578,32 @@ var app = new Vue({
                 });
                 this.navigation.posMarker = L.svgMarker(this.status.gps, {icon:icon}).addTo(this.navigation.map);
             }
-            //update trajectory
-            /*if(!this.trajectory.path){
-                this.trajectory.path = L.polyline([], {color: "red"}).addTo(this.trajectory.map);
-                this.trajectory.path.addLatLng(this.status.gps);
-                this.trajectory.lastUpdate = spacetime.now();
+            //update target marker
+            if(this.navigation.targetMarker){
+                this.navigation.map.removeLayer(this.navigation.targetMarker);
+                this.navigation.targetMarker = null;
             }
-            else{
-                var curTime = spacetime.now();
-                if(this.trajectory.lastUpdate.diff(curTime,"second") >= 10){
-                    this.trajectory.path.addLatLng(this.status.gps);
-                    this.trajectory.lastUpdate = curTime;
+            if(!this.navigation.curPath) return;
+            if(this.navigation.pause) return;
+            if(this.navigation.curTargetIndex < 0) return;
+            if(this.navigation.curTargetIndex >= this.navigation.curPath.path.ptArr.length){
+                if(this.navigation.loop){
+                    this.navigation.curTargetIndex = 0;
                 }
-                
-            }*/
+                else return;
+            }
+
+            var target = this.navigation.curPath.path.ptArr[this.navigation.curTargetIndex];
+            this.navigation.targetMarker = L.marker(target);
+            this.navigation.targetMarker.addTo(this.navigation.map);
+
+            //check target arrival
+            var dist = 0.00001;
+            var latDiff = this.status.gps.lat-target.lat;
+            var lngDiff = this.status.gps.lng-target.lng;
+            if(latDiff*latDiff+lngDiff*lngDiff < dist*dist){
+                this.navigation.curTargetIndex++;
+            }
         },
         OpenPathSelect: function(){
             this.navigation.openPathSelect = true;
@@ -603,11 +617,28 @@ var app = new Vue({
             this.navigation.curPath = null;
             this.navigation.selectIndex = -1;
             this.navigation.openPathSelect = false;
+            if(this.navigation.pathLine){
+                this.navigation.map.removeLayer(this.navigation.pathLine);
+                this.navigation.pathLine = null;
+            }
+            this.navigation.curTargetIndex = -1;
             if(i<0 || i>= this.navigation.pathList.length) return;
             
             this.navigation.curPath = this.navigation.pathList[i];
             this.navigation.selectIndex = i;
             this.navigation.pause = false;
+            this.navigation.curTargetIndex = 0;
+
+            //add path line to map
+            var latlngs = [];
+            var arr = this.navigation.curPath.path.ptArr;
+            for(var i=0;i<arr.length;i++){
+                var pt = arr[i]
+                latlngs.push([pt.lat,pt.lng]);
+            }
+            this.navigation.pathLine = L.polyline(latlngs, {color: "red"});
+            this.navigation.pathLine.addTo(this.navigation.map);
+            this.navigation.map.fitBounds(this.navigation.pathLine.getBounds());
         },
         ResumePath: function(){
             this.navigation.pause = false;
@@ -641,6 +672,26 @@ var app = new Vue({
             }
             
         },
+        GetNavigationPathName: function(){
+            if(!this.navigation.curPath) return "無";
+            if(this.navigation.pause) return "暫停";
+            var name = this.navigation.curPath.path.name;
+            if(this.navigation.curTargetIndex >= this.navigation.curPath.path.ptArr.length && !this.navigation.loop){
+                name += "(結束)";
+            }
+            return name;
+        },
+        AutoDrive: function(){
+            if(!this.navigation.curPath) return;
+            if(this.navigation.pause) return;
+            if(this.navigation.curTargetIndex < 0) return;
+            if(this.navigation.curTargetIndex >= this.navigation.curPath.path.ptArr.length&& !this.navigation.loop) return;
+            
+            var t = spacetime.now();
+            var r = 0.0001, w = 0.002*Math.PI;
+            this.status.gps.lat = 23.9652+r*Math.sin(w*t.millisecond());
+            this.status.gps.lng = 120.9674+r*Math.cos(w*t.millisecond());
+        }
 
     }
 });

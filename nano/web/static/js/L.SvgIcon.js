@@ -21,13 +21,19 @@ L.SvgIcon = L.DivIcon.extend({
         svg.selectAll("*").remove();
         var w = this.options.iconSize[0];
         var h = this.options.iconSize[1];
-        svg.append("rect")
+
+        var ptArr = [
+            [w*0.25,0], [w,h*0.5],[w*0.25,h],[w*0.5,h*0.5],[w*0.25,0]
+        ];
+        for(var i=0;i<ptArr.length;i++){
+            ptArr[i] = ptArr[i].join(",");
+        }
+        ptArr = ptArr.join(" ");
+        
+        svg.append("polygon")
             .attr("transform", "rotate("+this.angle+","+(w*0.5)+","+(h*0.5)+")")
-            .attr("x", 0)
-            .attr("y", h*0.25)
-            .attr("width", w)
-            .attr("height", h*0.5)
-            .style("fill", "#ff0000");
+            .attr("points", ptArr)
+            .style("fill", "#0000ff");
     }
 });
 
