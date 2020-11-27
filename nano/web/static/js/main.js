@@ -687,10 +687,10 @@ var app = new Vue({
             if(this.navigation.curTargetIndex < 0) return;
             if(this.navigation.curTargetIndex >= this.navigation.curPath.path.ptArr.length&& !this.navigation.loop) return;
             
-            var t = spacetime.now();
+            /*var t = spacetime.now();
             var r = 0.0001, w = 0.002*Math.PI;
             this.status.gps.lat = 23.9652+r*Math.sin(w*t.millisecond());
-            this.status.gps.lng = 120.9674+r*Math.cos(w*t.millisecond());
+            this.status.gps.lng = 120.9674+r*Math.cos(w*t.millisecond());*/
         }
 
     }
