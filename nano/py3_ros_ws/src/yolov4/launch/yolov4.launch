@@ -1,0 +1,3 @@
+<launch>
+    <node name="yolov4_node" pkg="yolov4" type="yolov4_node" output="screen"></node>
+</launch>
