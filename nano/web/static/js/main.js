@@ -126,12 +126,18 @@ var app = new Vue({
                 messageType : this.topic.carState.type
             });
             this.topic.carState.instance.subscribe(function(msg) {
-                this.status.preGPS.lat = this.status.gps.lat;
-                this.status.preGPS.lng = this.status.gps.lng;
-
-                var arr = msg.data.split(",")
-                this.status.gps.lat = parseFloat(arr[0]);
-                this.status.gps.lng = parseFloat(arr[1]);
+                var arr = msg.data.split(",");
+                var lat = parseFloat(arr[0]);
+                var lng = parseFloat(arr[1]);
+                if(this.CheckGPSValid(lat,lng)){
+                    this.status.preGPS.lat = this.status.gps.lat;
+                    this.status.preGPS.lng = this.status.gps.lng;
+                    this.status.gps.lat = lat;
+                    this.status.gps.lng = lng;
+                    var latDiff = this.status.gps.lat-this.status.preGPS.lat;
+                    var lngDiff = this.status.gps.lng-this.status.preGPS.lng;
+                    this.status.angle = Math.atan2(-latDiff,lngDiff)*180/Math.PI;
+                }
                 
                 this.status.usFL.dist = parseFloat(arr[2]);
                 this.status.usF.dist = parseFloat(arr[3]);
@@ -409,6 +415,7 @@ var app = new Vue({
             }.bind(this));
         },
         CheckGPSValid: function(lat,lng){
+            if(lat == null || lng == null) return false;
             if(lat < -90 || lat > 90 || lng < -180 || lng > 180){
                 return false;
             }
@@ -562,10 +569,6 @@ var app = new Vue({
             if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)) return;
 
             //update pos marker
-            var latDiff = this.status.gps.lat-this.status.preGPS.lat;
-            var lngDiff = this.status.gps.lng-this.status.preGPS.lng;
-            this.status.angle = Math.atan2(-latDiff,lngDiff)*180/Math.PI;
-
             if(this.navigation.posMarker){
                 this.navigation.posMarker.setAngle(this.status.angle);
                 this.navigation.posMarker.setLatLng(this.status.gps);
@@ -586,24 +589,11 @@ var app = new Vue({
             if(!this.navigation.curPath) return;
             if(this.navigation.pause) return;
             if(this.navigation.curTargetIndex < 0) return;
-            if(this.navigation.curTargetIndex >= this.navigation.curPath.path.ptArr.length){
-                if(this.navigation.loop){
-                    this.navigation.curTargetIndex = 0;
-                }
-                else return;
-            }
-
+            if(this.navigation.curTargetIndex >= this.navigation.curPath.path.ptArr.length) return;
             var target = this.navigation.curPath.path.ptArr[this.navigation.curTargetIndex];
             this.navigation.targetMarker = L.marker(target);
             this.navigation.targetMarker.addTo(this.navigation.map);
 
-            //check target arrival
-            var dist = 0.00001;
-            var latDiff = this.status.gps.lat-target.lat;
-            var lngDiff = this.status.gps.lng-target.lng;
-            if(latDiff*latDiff+lngDiff*lngDiff < dist*dist){
-                this.navigation.curTargetIndex++;
-            }
         },
         OpenPathSelect: function(){
             this.navigation.openPathSelect = true;
@@ -634,6 +624,8 @@ var app = new Vue({
             var arr = this.navigation.curPath.path.ptArr;
             for(var i=0;i<arr.length;i++){
                 var pt = arr[i]
+                pt.lat = parseFloat(pt.lat);
+                pt.lng = parseFloat(pt.lng);
                 latlngs.push([pt.lat,pt.lng]);
             }
             this.navigation.pathLine = L.polyline(latlngs, {color: "red"});
@@ -685,12 +677,73 @@ var app = new Vue({
             if(!this.navigation.curPath) return;
             if(this.navigation.pause) return;
             if(this.navigation.curTargetIndex < 0) return;
-            if(this.navigation.curTargetIndex >= this.navigation.curPath.path.ptArr.length&& !this.navigation.loop) return;
+            if(this.navigation.curTargetIndex >= this.navigation.curPath.path.ptArr.length){
+                if(this.navigation.loop) this.navigation.curTargetIndex = 0;
+                else return;
+            }
+
+            //compute move command
+            var forward = 0, forwardP = 1, forwardI = 0, forwardD = 0;
+            var turn = 0, turnP = 1, turnI = 0, turnD = 0;
+            var target = this.navigation.curPath.path.ptArr[this.navigation.curTargetIndex];
+            var curDir = [
+                Math.cos(this.status.angle),
+                Math.sin(this.status.angle)
+            ];
+
+            var targetDir = [
+                target.lng - this.status.gps.lng,
+                -(target.lat - this.status.gps.lat)
+            ];
+            var targetNorm = Math.sqrt(targetDir[0]*targetDir[0]+targetDir[1]*targetDir[1]);
+
+            var dist = 1e-5;
+            if(targetNorm < dist){  //target arrival
+                this.navigation.curTargetIndex++;
+                return;
+            }
+            else{
+                var invNorm = 1.0/targetNorm;
+                targetDir[0] *= invNorm;
+                targetDir[1] *= invNorm;
+                var cross = curDir[0]*targetDir[1]-curDir[1]*targetDir[0];
+                turn = cross*turnP;
+                forward = targetNorm*forwardP;
+            }
             
+            if(forward > 1) forward = 1;
+            if(forward < -1) forward = -1;
+            if(turn > 1) turn = 1;
+            if(turn < -1) turn = -1;
+            
+
+            //simulate straight move toward target
+            if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)){
+                this.status.gps.lat = target.lat;
+                this.status.gps.lng = target.lng;
+                this.status.preGPS.lat = target.lat-0.0001;
+                this.status.preGPS.lng = target.lng;
+            }
+            else{
+                var speed = 1e-6;
+                this.status.preGPS.lat = this.status.gps.lat;
+                this.status.preGPS.lng = this.status.gps.lng;
+                this.status.gps.lat += -targetDir[1]*speed;
+                this.status.gps.lng += targetDir[0]*speed;
+            }
+
+            //simulate circle move
             /*var t = spacetime.now();
             var r = 0.0001, w = 0.002*Math.PI;
+            this.status.preGPS.lat = this.status.gps.lat;
+            this.status.preGPS.lng = this.status.gps.lng;
             this.status.gps.lat = 23.9652+r*Math.sin(w*t.millisecond());
             this.status.gps.lng = 120.9674+r*Math.cos(w*t.millisecond());*/
+
+            //update angle
+            var latDiff = this.status.gps.lat-this.status.preGPS.lat;
+            var lngDiff = this.status.gps.lng-this.status.preGPS.lng;
+            this.status.angle = Math.atan2(-latDiff,lngDiff)*180/Math.PI;
         }
 
     }
