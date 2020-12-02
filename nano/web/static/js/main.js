@@ -20,7 +20,9 @@ var app = new Vue({
             fsmEvent: {name: "/fsm/event",type:"std_msgs/String",instance:null},
             carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist",instance:null},
             frontRGB:  {name: "/apriltag/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null},
-            sideRGB:  {name: "/yolov5/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null},
+            sideRGB:  {name: "/camera/color/image_raw/compressed", type:"sensor_msgs/CompressedImage",instance:null},
+            sideRGB_yolov4:  {name: "/yolov4/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null},
+            sideRGB_yolov5:  {name: "/yolov5/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null},
             sideDepth:  {name: "/camera/aligned_depth_to_color/image_raw/compressedDepth", type:"sensor_msgs/CompressedImage",instance:null},
         },
         service: {
@@ -34,6 +36,7 @@ var app = new Vue({
             sideRGB: "static/image/logo.png",
             sideDepth: "static/image/logo.png"
         },
+        sideRGBSelect: "side",    //side,yolov4,yolov5
         joystick: {
             touch: false,
             x: 0,
@@ -195,7 +198,31 @@ var app = new Vue({
                 messageType : this.topic.sideRGB.type
             });
             this.topic.sideRGB.instance.subscribe(function(msg) {
-                this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
+                if(this.sideRGBSelect == "side"){
+                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
+                }
+            }.bind(this));
+
+            this.topic.sideRGB_yolov4.instance = new ROSLIB.Topic({
+                ros : ros,
+                name : this.topic.sideRGB_yolov4.name,
+                messageType : this.topic.sideRGB_yolov4.type
+            });
+            this.topic.sideRGB_yolov4.instance.subscribe(function(msg) {
+                if(this.sideRGBSelect == "yolov4"){
+                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
+                }
+            }.bind(this));
+
+            this.topic.sideRGB_yolov5.instance = new ROSLIB.Topic({
+                ros : ros,
+                name : this.topic.sideRGB_yolov5.name,
+                messageType : this.topic.sideRGB_yolov5.type
+            });
+            this.topic.sideRGB_yolov5.instance.subscribe(function(msg) {
+                if(this.sideRGBSelect == "yolov5"){
+                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
+                }
             }.bind(this));
 
             this.topic.sideDepth.instance = new ROSLIB.Topic({
@@ -413,6 +440,9 @@ var app = new Vue({
                     }
                 }
             }.bind(this));
+        },
+        ChangeSideCameraTopic: function(){
+            this.imageData.sideRGB = "static/image/logo.png";
         },
         CheckGPSValid: function(lat,lng){
             if(lat == null || lng == null) return false;
@@ -715,10 +745,15 @@ var app = new Vue({
             if(forward < -1) forward = -1;
             if(turn > 1) turn = 1;
             if(turn < -1) turn = -1;
-            
+
+            var twist = new ROSLIB.Message({
+                linear : {x : forward, y : 0, z : 0},
+                angular : {x : 0, y : 0, z : turn}
+            });
+            this.topic.carCmd.instance.publish(twist);
 
             //simulate straight move toward target
-            if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)){
+            /*if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)){
                 this.status.gps.lat = target.lat;
                 this.status.gps.lng = target.lng;
                 this.status.preGPS.lat = target.lat-0.0001;
@@ -731,6 +766,11 @@ var app = new Vue({
                 this.status.gps.lat += -targetDir[1]*speed;
                 this.status.gps.lng += targetDir[0]*speed;
             }
+            //update angle
+            var latDiff = this.status.gps.lat-this.status.preGPS.lat;
+            var lngDiff = this.status.gps.lng-this.status.preGPS.lng;
+            this.status.angle = Math.atan2(-latDiff,lngDiff)*180/Math.PI;
+            */
 
             //simulate circle move
             /*var t = spacetime.now();
@@ -738,12 +778,14 @@ var app = new Vue({
             this.status.preGPS.lat = this.status.gps.lat;
             this.status.preGPS.lng = this.status.gps.lng;
             this.status.gps.lat = 23.9652+r*Math.sin(w*t.millisecond());
-            this.status.gps.lng = 120.9674+r*Math.cos(w*t.millisecond());*/
-
+            this.status.gps.lng = 120.9674+r*Math.cos(w*t.millisecond());
             //update angle
             var latDiff = this.status.gps.lat-this.status.preGPS.lat;
             var lngDiff = this.status.gps.lng-this.status.preGPS.lng;
             this.status.angle = Math.atan2(-latDiff,lngDiff)*180/Math.PI;
+            */
+
+            
         }
 
     }

@@ -112,7 +112,12 @@
                                     @click="TriggerImageStore('side',true,false,true);">save</div>
                                 <div class="material-icons btn p-1 m-2 bg-primary text-white rounded-circle"
                                     data-toggle="tooltip" title="上傳影像"    
-                                    @click="TriggerImageStore('side',false,true,true);">cloud_upload</div> 
+                                    @click="TriggerImageStore('side',false,true,true);">cloud_upload</div>
+                                <select v-model="sideRGBSelect" @change="ChangeSideCameraTopic();">
+                                    <option value="side">原始影像</option>
+                                    <option value="yolov4">YoloV4</option>
+                                    <option value="yolov5">YoloV5</option>
+                                </select> 
                             </div>
                         </div>
                     </div>
