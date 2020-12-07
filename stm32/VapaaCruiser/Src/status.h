@@ -5,7 +5,7 @@
 
 void SendSensorStatus(void);
 
-//¥Ñusart1ªºtransmit complete interruptÅX°Ê
+//ç”±usart1çš„transmit complete interrupté©…å‹•
 void ContinueStatusSend(UART_HandleTypeDef *UartHandle);
 
 #endif

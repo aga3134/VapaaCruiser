@@ -140,8 +140,8 @@ void ComputeUltrasoundDist(TIM_HandleTypeDef *htim){
 			diff = (htim->Init.Period - target->value1) + target->value2;
 		}
 
-		//­µªi¨«ªº¶ZÂ÷=³t«×x®É¶¡ ®É¶¡=diff(us °²³]timer³]©w¦¨1m hz) ³t«×=­µ³t=340(m/s)
-		//¤Ï®g­µªi¨«ªº¶ZÂ÷=ª«Åé¶ZÂ÷*2 =>ª«Åé¶ZÂ÷=diff*10^-6*340*0.5(m) = diff*0.17*10^-3(m)=diff*0.017(cm)
+		//éŸ³æ³¢èµ°çš„è·é›¢=é€Ÿåº¦xæ™‚é–“ æ™‚é–“=diff(us å‡è¨­timerè¨­å®šæˆ1m hz) é€Ÿåº¦=éŸ³é€Ÿ=340(m/s)
+		//åå°„éŸ³æ³¢èµ°çš„è·é›¢=ç‰©é«”è·é›¢*2 =>ç‰©é«”è·é›¢=diff*10^-6*340*0.5(m) = diff*0.17*10^-3(m)=diff*0.017(cm)
 		target->dist = diff*0.017;
 		target->firstCapture = 0;
 		__HAL_TIM_SET_CAPTUREPOLARITY(htim, channel, TIM_INPUTCHANNELPOLARITY_RISING);

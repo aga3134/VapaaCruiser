@@ -1,9 +1,9 @@
 #include "motor.h"
 #include "main.h"
 
-//°¨¹Fpwm¶g´Á¬°50hz(20000 micro second)=timer¼Æ¤@°é¶g´Á
-//pulse width¬°544~2400 micro second¡A544¹ïÀ³0%¡A2400¹ïÀ³100%
-//¬°Á×§KÃz½Ä¡A¦A¥ÎMAX_FORWARD,MIN_FORWARD,MAX_TURN,MIN_TURN­­¨î¿é¥X%
+//é¦¬é”pwmé€±æœŸç‚º50hz(20000 micro second)=timeræ•¸ä¸€åœˆé€±æœŸ
+//pulse widthç‚º544~2400 micro secondï¼Œ544å°æ‡‰0%ï¼Œ2400å°æ‡‰100%
+//ç‚ºé¿å…çˆ†è¡ï¼Œå†ç”¨MAX_FORWARD,MIN_FORWARD,MAX_TURN,MIN_TURNé™åˆ¶è¼¸å‡º%
 #define MIN_PULSE 544
 #define MAX_PULSE 2400
 #define MAX_FORWARD 0.58
@@ -47,21 +47,21 @@ void UpdateMotorSpeed(){
 	uint32_t minPulseF,maxPulseF,minPulseT,maxPulseT;
 	uint32_t pwmF, pwmT;
 	
-	//³Ì¤j³Ì¤ppulse­­¨î
+	//æœ€å¤§æœ€å°pulseé™åˆ¶
 	minPulseF = MIN_PULSE+(MAX_PULSE-MIN_PULSE)*MIN_FORWARD;
 	maxPulseF = MIN_PULSE+(MAX_PULSE-MIN_PULSE)*MAX_FORWARD;
 	minPulseT = MIN_PULSE+(MAX_PULSE-MIN_PULSE)*MIN_TURN;
 	maxPulseT = MIN_PULSE+(MAX_PULSE-MIN_PULSE)*MAX_TURN;
-	//­pºâ­n¿é¥Xªºpulse
+	//è¨ˆç®—è¦è¼¸å‡ºçš„pulse
 	pwmF = minPulseF+(maxPulseF-minPulseF)*(g_TargetForward+1)*0.5f;
 	pwmT = minPulseT+(maxPulseT-minPulseT)*(g_TargetTurn+1)*0.5f;
 	
-	//­Y¶W¹L¤@©wupdate¦¸¼Æ³£¨S¦¬¨ì«ü¥O¡A´N°±¤î°Ê§@
+	//è‹¥è¶…éŽä¸€å®šupdateæ¬¡æ•¸éƒ½æ²’æ”¶åˆ°æŒ‡ä»¤ï¼Œå°±åœæ­¢å‹•ä½œ
 	if(g_UpdateCountAfterCmd++ > 30){
 		StopMotor();
 	}
 	
-	//¬°¤FÅý¹qÅÜ²£¥Í«á°h»Ýdouble click
+	//ç‚ºäº†è®“é›»è®Šç”¢ç”Ÿå¾Œé€€éœ€double click
 	if(g_TargetForward > -0.05f && g_TargetForward < 0.05f){
 		htim8.Instance->CCR1 = MIN_PULSE;
 	}

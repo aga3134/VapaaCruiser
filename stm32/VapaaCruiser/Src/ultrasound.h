@@ -23,7 +23,7 @@ void StartUltrasound(UltrasoundInstance* pInstance);
 void StopUltrasound(UltrasoundInstance* pInstance);
 
 void SendUltrasoundTrigger(void);
-//¥Ñtimerªºcapture input°T¸¹ÅX°Ê
+//ç”±timerçš„capture inputè¨Šè™Ÿé©…å‹•
 void ComputeUltrasoundDist(TIM_HandleTypeDef *htim);
 void GetUltrasoundDist(float* distArr);
 

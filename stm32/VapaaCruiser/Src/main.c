@@ -168,7 +168,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 		
-		//�Yuart�X����reset�N���sinit
+		//若uart當掉，重新init
 		if(huart1.gState == HAL_UART_STATE_RESET || huart1.RxState == HAL_UART_STATE_RESET){
 			MX_USART1_UART_Init();
 		}
