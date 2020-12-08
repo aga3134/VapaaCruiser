@@ -3,32 +3,32 @@
 
 #define BUFFER_SIZE 256
 
-//buffer¦s¸ê®Æ¡Afirst in first out¡Acircular buffer
-//first¬°¸ê®Æ¶}ÀYªºindex¡Alast¬°¸ê®Æµ²§Àªºindex+1
+//bufferå­˜è³‡æ–™ï¼Œfirst in first outï¼Œcircular buffer
+//firstç‚ºè³‡æ–™é–‹é ­çš„indexï¼Œlastç‚ºè³‡æ–™çµå°¾çš„index+1
 typedef struct{
 	unsigned char buffer[BUFFER_SIZE];
 	short first, last;
 }FIFOBufferInstance;
 
-//ªì©l¤Æinstance
+//åˆå§‹åŒ–instance
 void FIFOBufferInit(FIFOBufferInstance* instance);
 
-//¨ú±o¥Ø«e¦s¦bbufferªº¸ê®Æsize
+//å–å¾—ç›®å‰å­˜åœ¨bufferçš„è³‡æ–™size
 unsigned short FIFOBufferGetDataSize(FIFOBufferInstance* instance);
 
-//Åª¨úbuffer¤¤²Äindex­Ó¸ê®Æ¨ìdest¡A¦ı¬O¤£±N¸ê®Æ±qbuffer¨ú¥X
-//­Yindex¶W¥Xbuffer¸ê®Æ½d³ò¦^¶Ç0¡A¤Ï¤§¦^¶Ç1
+//è®€å–bufferä¸­ç¬¬indexå€‹è³‡æ–™åˆ°destï¼Œä½†æ˜¯ä¸å°‡è³‡æ–™å¾bufferå–å‡º
+//è‹¥indexè¶…å‡ºbufferè³‡æ–™ç¯„åœå›å‚³0ï¼Œåä¹‹å›å‚³1
 unsigned char FIFOBufferPeekData(FIFOBufferInstance* instance, unsigned char* dest,unsigned short index);
 
-//Åª¨únum¤j¤pªº¸ê®Æ¨ìdest¡A¨Ã¥B±N¸ê®Æ±qbuffer¨ú¥X
-//­Ynum¤j©óbuffer¤¤¦³ªº¸ê®Æ¤j¤p¦^¶Ç0(¥B¤£Åª¥X¸ê®Æ)¡A¤Ï¤§¦^¶Çnum
+//è®€å–numå¤§å°çš„è³‡æ–™åˆ°destï¼Œä¸¦ä¸”å°‡è³‡æ–™å¾bufferå–å‡º
+//è‹¥numå¤§æ–¼bufferä¸­æœ‰çš„è³‡æ–™å¤§å°å›å‚³0(ä¸”ä¸è®€å‡ºè³‡æ–™)ï¼Œåä¹‹å›å‚³num
 unsigned char FIFOBufferGetData(FIFOBufferInstance* instance, unsigned char* dest, unsigned short num);
 
-//±qsrc¤¤¼g¤Jnum¤j¤pªº¸ê®Æ¨ìdest
-//­Y¼g¤£¤U(buffer¤wº¡)«h¤£¼g¤J¨Ã¦^¶Ç0¡A¤Ï¤§¦^¶Çnum
+//å¾srcä¸­å¯«å…¥numå¤§å°çš„è³‡æ–™åˆ°dest
+//è‹¥å¯«ä¸ä¸‹(bufferå·²æ»¿)å‰‡ä¸å¯«å…¥ä¸¦å›å‚³0ï¼Œåä¹‹å›å‚³num
 unsigned char FIFOBufferPutData(FIFOBufferInstance* instance, unsigned char* src, unsigned short num);
 
-//²MªÅbuffer¤¤num­Ó¸ê®Æ
+//æ¸…ç©ºbufferä¸­numå€‹è³‡æ–™
 void FIFOBufferClear(FIFOBufferInstance* instance, unsigned short num);
 
 #endif

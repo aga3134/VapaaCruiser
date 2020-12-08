@@ -28,9 +28,9 @@ void SendSensorStatus(){
 	//put data into g_TxBuffer
 	len = strlen(g_StatusMsg);
 	unsigned short num = FIFOBufferPutData(&g_StatusTxBuffer,(unsigned char*)g_StatusMsg,len);
-	//if(num == 0) return;	//º¡¤F
+	//if(num == 0) return;	//æ»¿äº†
 	
-	//­Y¨S¦b¶Ç¿é´N¶}©l¶Ç
+	//è‹¥æ²’åœ¨å‚³è¼¸å°±é–‹å§‹å‚³
 	if(huart1.gState == HAL_UART_STATE_READY){
 		if(FIFOBufferGetData(&g_StatusTxBuffer,&g_StatusOutData,1)){
 			HAL_UART_Transmit_IT(&huart1, &g_StatusOutData,1);
@@ -41,8 +41,8 @@ void SendSensorStatus(){
 void ContinueStatusSend(UART_HandleTypeDef *UartHandle){
 	if(UartHandle->Instance != USART1) return;
 	
-	//¦pªGg_TxBuffer¦³¸ê®Æ´NÄ~Äò°e¤U¤@µ§¸ê®Æ
-  if(FIFOBufferGetData(&g_StatusTxBuffer,&g_StatusOutData,1)){
+	//å¦‚æœg_TxBufferæœ‰è³‡æ–™å°±ç¹¼çºŒé€ä¸‹ä¸€ç­†è³‡æ–™
+	if(FIFOBufferGetData(&g_StatusTxBuffer,&g_StatusOutData,1)){
 		HAL_UART_Transmit_IT(&huart1, &g_StatusOutData,1);
 	}
 }

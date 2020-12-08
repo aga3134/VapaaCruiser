@@ -3,9 +3,9 @@
 
 void StartMotor(void);
 void StopMotor(void);
-//forward:-1~1, turn:-1~1, rate:0~1¡A¶V±µªñ1³t«×§ïÅÜ¶V§Ö
+//forward:-1~1, turn:-1~1, rate:0~1ï¼Œè¶Šæ¥è¿‘1é€Ÿåº¦æ”¹è®Šè¶Šå¿«
 void SetMotorSpeed(float forward, float turn);
-//¨Ìrate³]©w³vº¥Åı³t«×±µªñSetSpeed³]©wªº¼Æ­È
+//ä¾rateè¨­å®šé€æ¼¸è®“é€Ÿåº¦æ¥è¿‘SetSpeedè¨­å®šçš„æ•¸å€¼
 void UpdateMotorSpeed(void);
 
 #endif
