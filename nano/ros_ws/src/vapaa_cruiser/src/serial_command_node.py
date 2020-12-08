@@ -92,14 +92,14 @@ class SerialCommand():
         self.pub.publish(msg)
 
     def ReadFromSerial(self):
-       while not rospy.is_shutdown():
+        while not rospy.is_shutdown():
             while self.ser.in_waiting:
                 try:
                     msg = self.ser.readline().decode()  # 接收回應訊息並解碼
                     self.ReceiveState(msg)
+                    #print(msg)
                 except:
                     rospy.loginfo("serial invalid message")
-
 
 if __name__ == '__main__':
     rospy.init_node('serial_command_node')
