@@ -141,8 +141,8 @@ void ComputeUltrasoundDist(TIM_HandleTypeDef *htim){
 		}
 
 		//音波走的距離=速度x時間 時間=diff(us 假設timer設定成1m hz) 速度=音速=340(m/s)
-		//反射音波走的距離=物體距離*2 =>物體距離=diff*10^-6*340*0.5(m) = diff*0.17*10^-3(m)=diff*0.017(cm)
-		target->dist = diff*0.017;
+		//反射音波走的距離=物體距離*2 =>物體距離=diff*10^-6*340*0.5(m) = diff*0.17*10^-3(m)=diff*0.17(mm)
+		target->dist = diff*0.17;
 		target->firstCapture = 0;
 		__HAL_TIM_SET_CAPTUREPOLARITY(htim, channel, TIM_INPUTCHANNELPOLARITY_RISING);
 	}

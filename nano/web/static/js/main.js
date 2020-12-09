@@ -150,7 +150,7 @@ var app = new Vue({
                 this.status.usBR.dist = parseFloat(arr[7]);
 
                 function ComputeIndicator(dist){
-                    var alertDist = 50, warnDist = 70;
+                    var alertDist = 500, warnDist = 700;    //單位: mm
                     if(dist < alertDist) return "danger";
                     else if(dist < warnDist) return "warn";
                     else return "safe";
