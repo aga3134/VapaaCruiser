@@ -37,9 +37,34 @@
 			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/VapaaCruiser.ioc</locationURI>
 		</link>
 		<link>
+			<name>Application/User/FIFOBuffer.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Src/FIFOBuffer.c</locationURI>
+		</link>
+		<link>
+			<name>Application/User/command.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Src/command.c</locationURI>
+		</link>
+		<link>
+			<name>Application/User/gps.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Src/gps.c</locationURI>
+		</link>
+		<link>
 			<name>Application/User/main.c</name>
 			<type>1</type>
 			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/Src/main.c</locationURI>
+		</link>
+		<link>
+			<name>Application/User/motor.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Src/motor.c</locationURI>
+		</link>
+		<link>
+			<name>Application/User/status.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Src/status.c</locationURI>
 		</link>
 		<link>
 			<name>Application/User/stm32f4xx_hal_msp.c</name>
@@ -50,6 +75,11 @@
 			<name>Application/User/stm32f4xx_it.c</name>
 			<type>1</type>
 			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/Src/stm32f4xx_it.c</locationURI>
+		</link>
+		<link>
+			<name>Application/User/ultrasound.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Src/ultrasound.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/CMSIS/system_stm32f4xx.c</name>
