@@ -19,11 +19,10 @@ var app = new Vue({
             fsmState: {name: "/fsm/state",type:"std_msgs/String",instance:null},
             fsmEvent: {name: "/fsm/event",type:"std_msgs/String",instance:null},
             carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist",instance:null},
-            frontRGB:  {name: "/apriltag/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null},
-            sideRGB:  {name: "/camera/color/image_raw/compressed", type:"sensor_msgs/CompressedImage",instance:null},
-            sideRGB_yolov4:  {name: "/yolov4/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null},
-            sideRGB_yolov5:  {name: "/yolov5/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null},
-            sideDepth:  {name: "/camera/aligned_depth_to_color/image_raw/compressedDepth", type:"sensor_msgs/CompressedImage",instance:null},
+            frontRGB:  {name: "/apriltag/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
+            sideRGB:  {name: "/camera/color/image_raw/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
+            sideRGB_yolov4:  {name: "/yolov4/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
+            sideRGB_yolov5:  {name: "/yolov5/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
         },
         service: {
             followTagGetParam:  {name: "/followTag/getParam", type:"vapaa_cruiser/followTagGetParam",instance:null},
@@ -34,7 +33,6 @@ var app = new Vue({
         imageData:{
             frontRGB: "static/image/logo.png",
             sideRGB: "static/image/logo.png",
-            sideDepth: "static/image/logo.png"
         },
         sideRGBSelect: "side",    //side,yolov4,yolov5
         joystick: {
@@ -183,13 +181,23 @@ var app = new Vue({
                 }
             }.bind(this));
 
+            //控制影像更新頻率，避免太快來不及處理
+            setInterval(function(){
+                this.topic.frontRGB.update = true;
+                this.topic.sideRGB.update = true;
+                this.topic.sideRGB_yolov4.update = true;
+                this.topic.sideRGB_yolov5.update = true;
+            }.bind(this), 200);
+
             this.topic.frontRGB.instance = new ROSLIB.Topic({
                 ros : ros,
                 name : this.topic.frontRGB.name,
                 messageType : this.topic.frontRGB.type
             });
             this.topic.frontRGB.instance.subscribe(function(msg) {
+                if(!this.topic.frontRGB.update) return;
                 this.imageData.frontRGB = "data:image/jpeg;base64,"+msg.data;
+                this.topic.frontRGB.update = false;
             }.bind(this));
 
             this.topic.sideRGB.instance = new ROSLIB.Topic({
@@ -198,8 +206,10 @@ var app = new Vue({
                 messageType : this.topic.sideRGB.type
             });
             this.topic.sideRGB.instance.subscribe(function(msg) {
+                if(!this.topic.sideRGB.update) return;
                 if(this.sideRGBSelect == "side"){
                     this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
+                    this.topic.sideRGB.update = false;
                 }
             }.bind(this));
 
@@ -209,8 +219,10 @@ var app = new Vue({
                 messageType : this.topic.sideRGB_yolov4.type
             });
             this.topic.sideRGB_yolov4.instance.subscribe(function(msg) {
+                if(!this.topic.sideRGB_yolov4.update) return;
                 if(this.sideRGBSelect == "yolov4"){
                     this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
+                    this.topic.sideRGB_yolov4.update = false;
                 }
             }.bind(this));
 
@@ -220,18 +232,11 @@ var app = new Vue({
                 messageType : this.topic.sideRGB_yolov5.type
             });
             this.topic.sideRGB_yolov5.instance.subscribe(function(msg) {
+                if(!this.topic.sideRGB_yolov5.update) return;
                 if(this.sideRGBSelect == "yolov5"){
                     this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
+                    this.topic.sideRGB_yolov5.update = false;
                 }
-            }.bind(this));
-
-            this.topic.sideDepth.instance = new ROSLIB.Topic({
-                ros : ros,
-                name : this.topic.sideDepth.name,
-                messageType : this.topic.sideDepth.type
-            });
-            this.topic.sideDepth.instance.subscribe(function(msg) {
-                this.imageData.sideDepth = "data:image/jpeg;base64,"+msg.data;
             }.bind(this));
 
             //publish topics
