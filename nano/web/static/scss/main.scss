@@ -115,14 +115,21 @@ html, body{
         height: 20px;
         border-radius: 50%;
         border: 1px solid #333333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.5em;
         &.safe{
             background-color: #33ff33;
+            color: #000000;
         }
         &.warn{
             background-color: #ffff33;
+            color: #000000;
         }
         &.danger{
             background-color: #ff3333;
+            color: #ffffff;
         }
         
     }

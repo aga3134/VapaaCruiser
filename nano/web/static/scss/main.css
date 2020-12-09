@@ -152,18 +152,31 @@ html, body {
   height: 20px;
   border-radius: 50%;
   border: 1px solid #333333;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  font-size: 0.5em;
 }
 
 .vapaa-cruiser .us-indicator.safe {
   background-color: #33ff33;
+  color: #000000;
 }
 
 .vapaa-cruiser .us-indicator.warn {
   background-color: #ffff33;
+  color: #000000;
 }
 
 .vapaa-cruiser .us-indicator.danger {
   background-color: #ff3333;
+  color: #ffffff;
 }
 
 .vapaa-cruiser .bottom-panel {

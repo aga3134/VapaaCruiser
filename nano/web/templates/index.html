@@ -34,42 +34,54 @@
                                         safe: status.usFL.indicator=='safe',
                                         warn: status.usFL.indicator=='warn',
                                         danger: status.usFL.indicator=='danger',
-                                    }"></div>
+                                    }">
+                                        <div>[[this.status.usFL.dist.toFixed(0)]]</div>
+                                    </div>
                                 </div>
                                 <div class="pos-top" data-toggle="tooltip" title="前方測距">
                                     <div class="us-indicator" :class="{
                                         safe: status.usF.indicator=='safe',
                                         warn: status.usF.indicator=='warn',
                                         danger: status.usF.indicator=='danger',
-                                    }"></div>
+                                    }">
+                                        <div>[[this.status.usF.dist.toFixed(0)]]</div>
+                                    </div>
                                 </div>
                                 <div class="pos-top-right" data-toggle="tooltip" title="右前方測距">
                                     <div class="us-indicator" :class="{
                                         safe: status.usFR.indicator=='safe',
                                         warn: status.usFR.indicator=='warn',
                                         danger: status.usFR.indicator=='danger',
-                                    }"></div>
+                                    }">
+                                        <div>[[this.status.usFR.dist.toFixed(0)]]</div>
+                                    </div>
                                 </div>
                                 <div class="pos-bottom-left" data-toggle="tooltip" title="左後方測距">
                                     <div class="us-indicator" :class="{
                                         safe: status.usBL.indicator=='safe',
                                         warn: status.usBL.indicator=='warn',
                                         danger: status.usBL.indicator=='danger',
-                                    }"></div>
+                                    }">
+                                        <div>[[this.status.usBL.dist.toFixed(0)]]</div>
+                                    </div>
                                 </div>
                                 <div class="pos-bottom" data-toggle="tooltip" title="後方測距">
                                     <div class="us-indicator" :class="{
                                         safe: status.usB.indicator=='safe',
                                         warn: status.usB.indicator=='warn',
                                         danger: status.usB.indicator=='danger',
-                                    }"></div>
+                                    }">
+                                        <div>[[this.status.usB.dist.toFixed(0)]]</div>
+                                    </div>
                                 </div>
                                 <div class="pos-bottom-right" data-toggle="tooltip" title="右後方測距">
                                     <div class="us-indicator" :class="{
                                         safe: status.usBR.indicator=='safe',
                                         warn: status.usBR.indicator=='warn',
                                         danger: status.usBR.indicator=='danger',
-                                    }"></div>
+                                    }">
+                                        <div>[[this.status.usBR.dist.toFixed(0)]]</div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="card-footer">
