@@ -62,6 +62,15 @@ var app = new Vue({
             loop: false,
             pause: false
         },
+        autoDrive: {
+            curForward: 0, curTurn: 0,
+            targetForward: 0, targetTurn: 0,
+            errForward: 0, errTurn: 0,
+            errSumForward: 0, errSumTurn: 0,
+            forwardP: 1, forwardI: 0, forwardD: 0,
+            turnP: 1, turnI: 0, turnD: 0,
+            adjustByUS: true,
+        },
         pathEditor: {
             openAddPt: false,
             openSavePath: false,
@@ -720,8 +729,6 @@ var app = new Vue({
             }
 
             //compute move command
-            var forward = 0, forwardP = 1, forwardI = 0, forwardD = 0;
-            var turn = 0, turnP = 1, turnI = 0, turnD = 0;
             var target = this.navigation.curPath.path.ptArr[this.navigation.curTargetIndex];
             var curDir = [
                 Math.cos(this.status.angle),
@@ -734,8 +741,8 @@ var app = new Vue({
             ];
             var targetNorm = Math.sqrt(targetDir[0]*targetDir[0]+targetDir[1]*targetDir[1]);
 
-            var dist = 1e-5;
-            if(targetNorm < dist){  //target arrival
+            var tolerance = 1e-5;
+            if(targetNorm < tolerance){  //target arrival
                 this.navigation.curTargetIndex++;
                 return;
             }
@@ -744,18 +751,75 @@ var app = new Vue({
                 targetDir[0] *= invNorm;
                 targetDir[1] *= invNorm;
                 var cross = curDir[0]*targetDir[1]-curDir[1]*targetDir[0];
-                turn = cross*turnP;
-                forward = targetNorm*forwardP;
-            }
-            
-            if(forward > 1) forward = 1;
-            if(forward < -1) forward = -1;
-            if(turn > 1) turn = 1;
-            if(turn < -1) turn = -1;
+                this.autoDrive.targetTurn = cross;
+                this.autoDrive.targetForward = targetNorm;
 
+                //依超音波測距調整command
+                if(this.autoDrive.adjustByUS){
+                    var turnForce = 0, turnScale = 1;
+                    var breakForce = 0, breakScale = 1;
+                    if(this.autoDrive.targetForward > 0){
+                        if(this.status.usFL.dist > 0 && this.status.usFL.dist < 1000){
+                            turnForce += turnScale/this.status.usFL.dist;
+                        }
+                        if(this.status.usFR.dist > 0 && this.status.usFR.dist < 1000){
+                            turnForce -= turnScale/this.status.usFR.dist;
+                        }
+                        if(this.status.usF.dist > 0 && this.status.usF.dist < 1000){
+                            breakForce -= breakScale/this.status.usF.dist;
+                        }
+                    }
+                    else{
+                        if(this.status.usBL.dist > 0 && this.status.usBL.dist < 1000){
+                            turnForce -= turnScale/this.status.usBL.dist;
+                        }
+                        if(this.status.usBR.dist > 0 && this.status.usBR.dist < 1000){
+                            turnForce += turnScale/this.status.usBR.dist;
+                        }
+                        if(this.status.usB.dist > 0 && this.status.usB.dist < 1000){
+                            breakForce += breakScale/this.status.usB.dist;
+                        }
+                    }
+                    this.autoDrive.targetTurn += turnForce;
+                    this.autoDrive.targetForward += breakForce;
+                }
+                //limit target to -1~1
+                if(this.autoDrive.targetForward > 1) this.autoDrive.targetForward = 1;
+                if(this.autoDrive.targetForward < -1) this.autoDrive.targetForward = -1;
+                if(this.autoDrive.targetTurn > 1) this.autoDrive.targetTurn = 1;
+                if(this.autoDrive.targetTurn < -1) this.autoDrive.targetTurn = -1;
+            }
+            //update command by PID controller
+            var errForward = this.targetForward - this.curForward;
+            var errTurn = this.targetTurn = this.curTurn;
+            var errDiffForward = errForward - this.autoDrive.errForward;
+            var errDiffTurn = errTurn - this.autoDrive.errTurn;
+            this.autoDrive.errSumForward += errForward;
+            this.autoDrive.errSumTurn += errTurn;
+            
+            this.autoDrive.curForward += 
+                this.errForward*this.autoDrive.forwardP+
+                this.autoDrive.errSumForward*this.autoDrive.forwardI+
+                errDiffForward*this.autoDrive.forwardD;
+
+            this.autoDrive.curTurn += 
+                this.errTurn*this.autoDrive.turnP+
+                this.autoDrive.errSumTurn*this.autoDrive.turnI+
+                errDiffTurn*this.autoDrive.turnD;
+
+            this.autoDrive.errForward = errForward;
+            this.autoDrive.errTurn = errTurn;
+
+            //limit command to -1~1
+            if(this.autoDrive.curForward > 1) this.autoDrive.curForward = 1;
+            if(this.autoDrive.curForward < -1) this.autoDrive.curForward = -1;
+            if(this.autoDrive.curTurn > 1) this.autoDrive.curTurn = 1;
+            if(this.autoDrive.curTurn < -1) this.autoDrive.curTurn = -1;
+
+            //send command message
             var twist = new ROSLIB.Message({
-                linear : {x : forward, y : 0, z : 0},
-                angular : {x : 0, y : 0, z : turn}
+                linear : {x : this.autoDrive.curForward, y : 0, z : 0},
+                angular : {x : 0, y : 0, z : this.autoDrive.curTurn}
             });
             this.topic.carCmd.instance.publish(twist);
 
