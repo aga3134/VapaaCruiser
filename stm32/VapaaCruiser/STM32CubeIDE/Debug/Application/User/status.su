@@ -1,2 +1,0 @@
-status.c:16:6:SendSensorStatus	168	static
-status.c:41:6:ContinueStatusSend	16	static

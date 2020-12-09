@@ -33,8 +33,8 @@ unsigned char FIFOBufferGetData(FIFOBufferInstance* instance, unsigned char* des
 unsigned char FIFOBufferPutData(FIFOBufferInstance* instance, unsigned char* src, unsigned short num){
 	unsigned short size = FIFOBufferGetDataSize(instance);
 	int i=0;
-	//º¡ªº®É­Ôsize¬OBUFFER_SIZE-1¡A(last+1)%MAX_BUFFER == first
-	//¤£µMªÅ¸òº¡ªº®É­Ô³£¬Ofirst==last¡AµLªk°Ï¤À
+	//æ»¿çš„æ™‚å€™sizeæ˜¯BUFFER_SIZE-1ï¼Œ(last+1)%MAX_BUFFER == first
+	//ä¸ç„¶ç©ºè·Ÿæ»¿çš„æ™‚å€™éƒ½æ˜¯first==lastï¼Œç„¡æ³•å€åˆ†
 	if(size+num>=BUFFER_SIZE) return 0;
 
 	for(i=0;i<num;i++){

@@ -1,5 +1,0 @@
-ultrasound.c:17:6:StartUltrasound	16	static
-ultrasound.c:48:6:StopUltrasound	16	static
-ultrasound.c:80:6:SendUltrasoundTrigger	8	static
-ultrasound.c:86:6:ComputeUltrasoundDist	40	static
-ultrasound.c:151:6:GetUltrasoundDist	16	static

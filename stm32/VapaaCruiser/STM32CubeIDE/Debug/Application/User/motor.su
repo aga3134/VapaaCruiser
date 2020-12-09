@@ -1,4 +1,0 @@
-motor.c:19:6:StartMotor	8	static
-motor.c:29:6:StopMotor	8	static
-motor.c:39:6:SetMotorSpeed	16	static
-motor.c:46:6:UpdateMotorSpeed	32	static

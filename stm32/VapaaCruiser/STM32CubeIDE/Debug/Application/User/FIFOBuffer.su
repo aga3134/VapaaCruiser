@@ -1,6 +1,0 @@
-FIFOBuffer.c:4:6:FIFOBufferInit	16	static
-FIFOBuffer.c:10:16:FIFOBufferGetDataSize	16	static
-FIFOBuffer.c:14:15:FIFOBufferPeekData	32	static
-FIFOBuffer.c:21:15:FIFOBufferGetData	32	static
-FIFOBuffer.c:33:15:FIFOBufferPutData	32	static
-FIFOBuffer.c:47:6:FIFOBufferClear	24	static

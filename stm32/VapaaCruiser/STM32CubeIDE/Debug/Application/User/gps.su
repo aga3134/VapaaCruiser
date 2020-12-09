@@ -1,8 +1,0 @@
-gps.c:50:6:StartGPSReceive	8	static
-gps.c:55:6:StopGPSReceive	8	static
-gps.c:61:6:ConvertLatLng	48	static
-gps.c:80:15:ComparePrefix	32	static
-gps.c:88:15:ParseGPSInfo	80	static
-gps.c:179:6:ProcessGPS	288	static
-gps.c:218:6:ReceiveGPSInfo	16	static
-gps.c:230:15:GetGPSPos	16	static

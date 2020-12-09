@@ -40,7 +40,7 @@ void ReceiveCommand(UART_HandleTypeDef *UartHandle){
 	HAL_UART_Receive_IT(&huart1,&g_CmdInData,1);
 	if(UartHandle->Instance != USART1) return;
   FIFOBufferPutData(&g_CmdRxBuffer,&g_CmdInData,1);
-	//echo¦^¥h
+	//echoå›å»
 	//HAL_UART_Transmit_IT(&huart1, &g_InData,1);
 }
 
@@ -68,7 +68,7 @@ unsigned char ParseCommand(){
 	unsigned char d, sum = 0, valid = 0;
 	unsigned short start = 0, end = 0;
 	
-	//§PÂ_¬O§_¦³§¹¾ãcommand
+	//åˆ¤æ–·æ˜¯å¦æœ‰å®Œæ•´command
 	for(i=0;i<len && !valid;i++){
 		FIFOBufferPeekData(&g_CmdRxBuffer,&d,i);
 		switch(state){
@@ -107,19 +107,19 @@ unsigned char ParseCommand(){
 				break;
 		}
 	}
-	//²M±¼command¤Î¤§«eªº¸ê®Æ
+	//æ¸…æ‰commandåŠä¹‹å‰çš„è³‡æ–™
 	FIFOBufferClear(&g_CmdRxBuffer,end);
 	
-	//¦³®É­Ô±µ¦¬·|Â_±¼¡A³oÃä©w®É­«±Ò±µ¦¬
+	//æœ‰æ™‚å€™æ¥æ”¶æœƒæ–·æ‰ï¼Œé€™é‚Šå®šæ™‚é‡å•Ÿæ¥æ”¶
 	if(g_CmdStart){
 		HAL_UART_Receive_IT(&huart1,&g_CmdInData,1);
 	}
 	
-	if(state == CHECKSUM){	//¤wÅª¨ì§¹¾ãcommand
-		if(valid){	//checksumÀËÅçok
+	if(state == CHECKSUM){	//å·²è®€åˆ°å®Œæ•´command
+		if(valid){	//checksumæª¢é©—ok
 			ProcessCommand(&cmd);
 			return 1;
 		}
 	}
-	return 0;	//command¥¼§¹¾ã¡A¤U¦¸¦AÅª
+	return 0;	//commandæœªå®Œæ•´ï¼Œä¸‹æ¬¡å†è®€
 }

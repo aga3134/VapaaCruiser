@@ -7,7 +7,7 @@
 #include <math.h>
 
 typedef struct{
-	//­ì©l¸ê®ÆÄæ¦ì
+	//åŸå§‹è³‡æ–™æ¬„ä½
 	float time;	
 	float oriLat;
 	char dirLat;
@@ -25,7 +25,7 @@ typedef struct{
 	char stationID[10];
 	char checkSum[2];	
 	
-	//¨Ì­ì©l¸ê®Æ¹Bºâ«áªº¸g½n«×
+	//ä¾åŸå§‹è³‡æ–™é‹ç®—å¾Œçš„ç¶“ç·¯åº¦
 	float lat;
 	float lng;
 	char valid;
@@ -182,17 +182,17 @@ void ProcessGPS(){
 	char data[256] = {0};
 	unsigned char d,parseStatus = 0;
 	
-	//¨ú±ogps«ü¥OÀY§À¦ì¸m
+	//å–å¾—gpsæŒ‡ä»¤é ­å°¾ä½ç½®
 	for(i=0;i<len;i++){
 		FIFOBufferPeekData(&g_GPSBuffer,&d,i);
 		
 		switch(parseStatus){
-			case 0:	//´M§ägps«ü¥O¶}ÀY
+			case 0:	//å°‹æ‰¾gpsæŒ‡ä»¤é–‹é ­
 				if(d == '$'){
 					parseStatus = 1;
 				}
 				break;
-			case 1:	//´M§ägps«ü¥Oµ²§À
+			case 1:	//å°‹æ‰¾gpsæŒ‡ä»¤çµå°¾
 				data[dataLen++] = d;
 			
 				if(d == '\n'){
@@ -203,12 +203,12 @@ void ProcessGPS(){
 				break;
 		}
 	}
-	//²MªÅ¤w³B²zªº³¡¤À
+	//æ¸…ç©ºå·²è™•ç†çš„éƒ¨åˆ†
 	if(processed > 0){
 		FIFOBufferClear(&g_GPSBuffer,processed);
 	}
 	
-	//¦³®É­Ô±µ¦¬·|Â_±¼¡A³oÃä©w®É­«±Ò±µ¦¬
+	//æœ‰æ™‚å€™æ¥æ”¶æœƒæ–·æ‰ï¼Œé€™é‚Šå®šæ™‚é‡å•Ÿæ¥æ”¶
 	if(g_GPSStart){
 		HAL_UART_Receive_IT(&huart3,&g_GPSInData,1);
 	}
@@ -216,14 +216,14 @@ void ProcessGPS(){
 }
 
 void ReceiveGPSInfo(UART_HandleTypeDef *UartHandle){
-	//Ä~Äòµ¥¤U¤@µ§¸ê®Æ
+	//ç¹¼çºŒç­‰ä¸‹ä¸€ç­†è³‡æ–™
 	HAL_UART_Receive_IT(&huart3,&g_GPSInData,1);
 
 	if(UartHandle->Instance != USART3) return;
-	//±NÅª¨ìªº¸ê®Æ¦s¨ìgps buffer
+	//å°‡è®€åˆ°çš„è³‡æ–™å­˜åˆ°gps buffer
 	FIFOBufferPutData(&g_GPSBuffer,&g_GPSInData,1);
 	
-	//echo¦^¥h
+	//echoå›å»
 	//HAL_UART_Transmit_IT(&huart1, &g_InData,1);
 }
 

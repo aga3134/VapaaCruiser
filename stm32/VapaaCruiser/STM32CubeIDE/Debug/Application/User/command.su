@@ -1,5 +1,0 @@
-command.c:29:6:StartCommandReceive	8	static
-command.c:34:6:StopCommandReceive	8	static
-command.c:39:6:ReceiveCommand	16	static
-command.c:47:6:ProcessCommand	32	static
-command.c:63:15:ParseCommand	56	static

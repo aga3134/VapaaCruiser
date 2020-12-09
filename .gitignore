@@ -3,6 +3,8 @@ stm32/VapaaCruiser/MDK-ARM/VapaaCruiser.uvguix.aga
 stm32/VapaaCruiser/MDK-ARM/VapaaCruiser.uvoptx
 stm32/VapaaCruiser/MDK-ARM/VapaaCruiser/
 stm32/VapaaCruiser/build/
+stm32/VapaaCruiser/TrueSTUDIO/Debug/
+stm32/VapaaCruiser/STM32CubeIDE/Debug/
 nano/ros_ws/build/
 nano/ros_ws/devel/
 nano/ros_ws/src/vapaa_cruiser/save/
