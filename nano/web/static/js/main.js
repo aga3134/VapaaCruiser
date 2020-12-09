@@ -602,21 +602,22 @@ var app = new Vue({
             
         },
         UpdateNavigation: function(){
-            if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)) return;
-
-            //update pos marker
-            if(this.navigation.posMarker){
-                this.navigation.posMarker.setAngle(this.status.angle);
-                this.navigation.posMarker.setLatLng(this.status.gps);
+            if(this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)){
+                //update pos marker
+                if(this.navigation.posMarker){
+                    this.navigation.posMarker.setAngle(this.status.angle);
+                    this.navigation.posMarker.setLatLng(this.status.gps);
+                }
+                else{
+                    //this.navigation.posMarker = L.marker(this.status.gps).addTo(this.navigation.map);
+                    var icon = L.svgIcon({
+                        svgID: "carPos",
+                        iconSize: [25,25],
+                    });
+                    this.navigation.posMarker = L.svgMarker(this.status.gps, {icon:icon}).addTo(this.navigation.map);
+                }
             }
-            else{
-                //this.navigation.posMarker = L.marker(this.status.gps).addTo(this.navigation.map);
-                var icon = L.svgIcon({
-                    svgID: "carPos",
-                    iconSize: [25,25],
-                });
-                this.navigation.posMarker = L.svgMarker(this.status.gps, {icon:icon}).addTo(this.navigation.map);
-            }
+            
             //update target marker
             if(this.navigation.targetMarker){
                 this.navigation.map.removeLayer(this.navigation.targetMarker);
@@ -792,7 +793,10 @@ var app = new Vue({
             */
 
             
+        },
+        StopNavigation: function(){
+            this.SelectPath(-1);
+            this.FSMTransition("abort");
         }
-
     }
 });
