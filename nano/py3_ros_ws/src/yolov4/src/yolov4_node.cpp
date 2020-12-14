@@ -105,10 +105,10 @@ void imageCallback(const sensor_msgs::CompressedImageConstPtr& msg){  //for comp
                 vapaa_cruiser::objectDetect od;
                 od.id = bestClass;
                 od.name = names[bestClass];
-                int left = (det.bbox.x - det.bbox.w / 2.)*net->w;
-                int right = (det.bbox.x + det.bbox.w / 2.)*net->w;
-                int top = (det.bbox.y - det.bbox.h / 2.)*net->h;
-                int bottom= (det.bbox.y + det.bbox.h / 2.)*net->h;
+                int left = (det.bbox.x - det.bbox.w / 2.)*dst->width;
+                int right = (det.bbox.x + det.bbox.w / 2.)*dst->width;
+                int top = (det.bbox.y - det.bbox.h / 2.)*dst->height;
+                int bottom= (det.bbox.y + det.bbox.h / 2.)*dst->height;
 
                 od.corner[0].x = left;
                 od.corner[0].y = top;
