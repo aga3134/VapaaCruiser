@@ -18,7 +18,7 @@
 network* net = NULL;
 char** names = NULL;
 int classNum = 0;
-ros::Publisher yoloPub;
+ros::Publisher yoloPub, detectPub;
 
 //opencv channel: BGR, yolo image channel: RGB
 IplImage *image_to_ipl(image im){
@@ -72,7 +72,8 @@ void imageCallback(const sensor_msgs::CompressedImageConstPtr& msg){  //for comp
         
         detection *dets = get_network_boxes(net, yoloImage.w, yoloImage.h, 0.5, 0.5, 0, 1, &nboxes,1);
         if (nms) do_nms_sort(dets, nboxes, classNum, nms);
-        draw_detections_v3(yoloImage, dets, nboxes, 0.5, names, NULL, classNum, 0);
+        float thresh = 0.5;
+        draw_detections_v3(yoloImage, dets, nboxes, thresh, names, NULL, classNum, 0);
         
         //show result in opencv
         IplImage* dst = image_to_ipl(yoloImage);
@@ -85,6 +86,44 @@ void imageCallback(const sensor_msgs::CompressedImageConstPtr& msg){  //for comp
         sensor_msgs::CompressedImagePtr msg = cvi.toCompressedImageMsg();   //for compressed image
         yoloPub.publish(msg);
   
+        //publish detected object
+        vapaa_cruiser::objectDetectArray odArr;
+        odArr.header.stamp = ros::Time::now();
+        for(int i=0;i<nboxes;i++){
+            float bestP = thresh;
+            int bestClass = -1;
+            detection det = dets[i];
+
+            for(int j=0;j<det.classes;j++){
+                if(det.prob[j] > bestP){
+                    bestP = det.prob[j];
+                    bestClass = j;
+                }
+            }
+
+            if(bestClass > 0){
+                vapaa_cruiser::objectDetect od;
+                od.id = bestClass;
+                od.name = names[bestClass];
+                int left = (det.bbox.x - det.bbox.w / 2.)*net->w;
+                int right = (det.bbox.x + det.bbox.w / 2.)*net->w;
+                int top = (det.bbox.y - det.bbox.h / 2.)*net->h;
+                int bottom= (det.bbox.y + det.bbox.h / 2.)*net->h;
+
+                od.corner[0].x = left;
+                od.corner[0].y = top;
+                od.corner[1].x = right;
+                od.corner[1].y = top;
+                od.corner[2].x = right;
+                od.corner[2].y = bottom;
+                od.corner[3].x = left;
+                od.corner[3].y = bottom;
+
+                odArr.object_array.push_back(od);
+            }
+            
+        }
+        detectPub.publish(odArr);
 
         //release memory
         free_detections(dets, nboxes);
@@ -120,6 +159,7 @@ int main(int argc, char **argv){
 
     //cvNamedWindow("image");
     yoloPub = nh.advertise<sensor_msgs::CompressedImage>("yolov4/detected/compressed", 1);
+    detectPub = nh.advertise<vapaa_cruiser::objectDetectArray>("yolov4/object", 1);
     ros::Subscriber sub = nh.subscribe("/camera/color/image_raw/compressed",1,imageCallback);  //for compressed image
     ros::spin();
 
