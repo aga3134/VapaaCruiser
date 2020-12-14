@@ -25,6 +25,9 @@
         <param name="maxAngle" value="0.78539815"/>
         <param name="speedScale" value="0.000015"/>
     </node>
+    <node name="depth_process_node" pkg="vapaa_cruiser" type="depth_process_node.py" output="screen"> 
+        <param name="rate" value="30"/>
+    </node>
 
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="align_depth" value="true"/>

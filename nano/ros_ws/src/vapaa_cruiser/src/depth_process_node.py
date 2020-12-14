@@ -33,17 +33,12 @@ class DepthProcess():
         rate = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
             if self.inFrame is not None:
-                if self.outFrame is None:
-                    h, w = self.inFrame.shape[:2]
-                    self.outFrame = np.zeros((h, w, 3), dtype=np.uint8)
-                    #print(self.outFrame.shape)
-
                 #realsense ros publish 16bit image with  unit mm, scale image value for more  clear  visualization
                 self.outFrame = cv2.cvtColor((self.inFrame/20), cv2.COLOR_GRAY2BGR)
 
                 if self.yolov4Obj is not None:
                     for obj in self.yolov4Obj.object_array:
-                        print(obj.name)
+                        #print(obj.name)
                         cv2.rectangle(self.outFrame, 
                             (int(obj.corner[0].x), int(obj.corner[0].y)), 
                             (int(obj.corner[2].x), int(obj.corner[2].y)),
