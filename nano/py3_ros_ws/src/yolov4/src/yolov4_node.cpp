@@ -2,6 +2,8 @@
 #include "ros/package.h"
 #include "std_msgs/String.h"
 #include "sensor_msgs/CompressedImage.h"
+#include "vapaa_cruiser/objectDetect.h"
+#include "vapaa_cruiser/objectDetectArray.h"
 #include "darknet.h"
 #include "option_list.h"
 #include "image.h"

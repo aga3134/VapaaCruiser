@@ -4,6 +4,7 @@ import rospy
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage, CameraInfo
+from vapaa_cruiser.msg import objectDetect,objectDetectArray
 
 import torch
 import torch.backends.cudnn as cudnn

@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   cv_bridge
+  vapaa_cruiser
   image_transport
 )
 find_package( OpenCV REQUIRED )
