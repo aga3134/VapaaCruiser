@@ -84,6 +84,7 @@ class YoloV5():
                 # Process detections
                 self.outFrame = self.inFrame.copy()
                 odArr = objectDetectArray()
+                odArr.header.stamp = rospy.Time.now()
                 for i, det in enumerate(pred):  # detections per image
                     if det is not None and len(det):
                         # Rescale boxes from img_size to image size
@@ -108,7 +109,7 @@ class YoloV5():
                             od.corner[2].y = y2
                             od.corner[3].x = x1
                             od.corner[3].y = y2
-                            odArr.object_arr.append(od)
+                            odArr.object_array.append(od)
 
                 imageMsg = self.br.cv2_to_compressed_imgmsg(self.outFrame)
                 self.pubImage.publish(imageMsg)

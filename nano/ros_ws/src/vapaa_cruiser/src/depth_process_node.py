@@ -14,9 +14,11 @@ class DepthProcess():
         self.pubImage = rospy.Publisher("depth_process/image/compressed",CompressedImage,queue_size=1)
         self.subImage = rospy.Subscriber("camera/aligned_depth_to_color/image_raw",Image,self. RecieveDepth)
         self.subYolov4 = rospy.Subscriber("yolov4/object",objectDetectArray,self. RecieveYolov4)
+        self.subYolov5 = rospy.Subscriber("yolov5/object",objectDetectArray,self. RecieveYolov5)
         self.inFrame = None
         self.outFrame = None
         self.yolov4Obj = None
+        self.yolov5Obj = None
         self.rate = rospy.get_param("~rate",30)
         self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(100)]
 
@@ -28,6 +30,11 @@ class DepthProcess():
 
     def RecieveYolov4(self,msg):
         self.yolov4Obj = msg
+        self.yolov5Obj = None
+    
+    def RecieveYolov5(self,msg):
+        self.yolov5Obj = msg
+        self.yolov4Obj = None
 
     def Run(self):
         rate = rospy.Rate(self.rate)
@@ -36,13 +43,19 @@ class DepthProcess():
                 #realsense ros publish 16bit image with  unit mm, scale image value for more  clear  visualization
                 self.outFrame = cv2.cvtColor((self.inFrame/20), cv2.COLOR_GRAY2BGR)
 
+                objArr = None
                 if self.yolov4Obj is not None:
-                    for obj in self.yolov4Obj.object_array:
+                    objArr = self.yolov4Obj.object_array
+                elif self.yolov5Obj is not None:
+                    objArr = self.yolov5Obj.object_array
+
+                if objArr is not None:
+                    for obj in objArr:
                         #print(obj.name)
                         cv2.rectangle(self.outFrame, 
                             (int(obj.corner[0].x), int(obj.corner[0].y)), 
                             (int(obj.corner[2].x), int(obj.corner[2].y)),
-                             self.colors[obj.id], 2)
+                            self.colors[obj.id], 2)
             
                 imageMsg = self.br.cv2_to_compressed_imgmsg(self.outFrame)
                 self.pubImage.publish(imageMsg)
