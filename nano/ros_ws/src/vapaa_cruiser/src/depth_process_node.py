@@ -56,6 +56,14 @@ class DepthProcess():
                             (int(obj.corner[0].x), int(obj.corner[0].y)), 
                             (int(obj.corner[2].x), int(obj.corner[2].y)),
                             self.colors[obj.id], 2)
+
+                        #draw label
+                        scale = 0.3
+                        textSize = cv2.getTextSize(obj.name, 0, fontScale=scale, thickness=1)[0]
+                        c1 = (int(obj.corner[0].x), int(obj.corner[0].y))
+                        c2 = (c1[0] + textSize[0], c1[1] - textSize[1]-3)
+                        cv2.rectangle(self.outFrame, c1, c2, self.colors[obj.id], -1, cv2.LINE_AA)  # filled
+                        cv2.putText(self.outFrame, obj.name, (c1[0],c1[1]-2), 0, scale, [255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
             
                 imageMsg = self.br.cv2_to_compressed_imgmsg(self.outFrame)
                 self.pubImage.publish(imageMsg)

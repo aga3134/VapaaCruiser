@@ -14,11 +14,13 @@
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <unistd.h>
 
 network* net = NULL;
 char** names = NULL;
 int classNum = 0;
 ros::Publisher yoloPub, detectPub;
+image **alphabet = NULL;
 
 //opencv channel: BGR, yolo image channel: RGB
 IplImage *image_to_ipl(image im){
@@ -73,7 +75,7 @@ void imageCallback(const sensor_msgs::CompressedImageConstPtr& msg){  //for comp
         detection *dets = get_network_boxes(net, yoloImage.w, yoloImage.h, 0.5, 0.5, 0, 1, &nboxes,1);
         if (nms) do_nms_sort(dets, nboxes, classNum, nms);
         float thresh = 0.5;
-        draw_detections_v3(yoloImage, dets, nboxes, thresh, names, NULL, classNum, 0);
+        draw_detections_v3(yoloImage, dets, nboxes, thresh, names, alphabet, classNum, 0);
         
         //show result in opencv
         IplImage* dst = image_to_ipl(yoloImage);
@@ -101,7 +103,7 @@ void imageCallback(const sensor_msgs::CompressedImageConstPtr& msg){  //for comp
                 }
             }
 
-            if(bestClass > 0){
+            if(bestClass >= 0){
                 vapaa_cruiser::objectDetect od;
                 od.id = bestClass;
                 od.name = names[bestClass];
@@ -138,6 +140,10 @@ void imageCallback(const sensor_msgs::CompressedImageConstPtr& msg){  //for comp
 }
 
 int main(int argc, char **argv){
+    char cwd[256];
+    getcwd(cwd, sizeof(cwd));
+    printf("Current working dir: %s\n", cwd);
+    
     ros::init(argc, argv, "yolov4_node");
     ROS_INFO("start yolov4 node");
     ros::NodeHandle nh;
@@ -148,6 +154,7 @@ int main(int argc, char **argv){
     nh.param<std::string>("weightfile", weightfile, nodePath+"/config/yolov4-tiny.weights");
     nh.param<std::string>("namefile", namefile, nodePath+"/config/obj.names");
     nh.param<std::string>("optionfile", optionfile, nodePath+"/config/obj.data");
+    alphabet = load_alphabet();
     int names_size = 0;
     names = get_labels_custom(const_cast<char*>(namefile.c_str()), &names_size);
     net = load_network_custom(const_cast<char*>(cfgfile.c_str()), const_cast<char*>(weightfile.c_str()), 0, 1);
@@ -163,6 +170,14 @@ int main(int argc, char **argv){
     ros::Subscriber sub = nh.subscribe("/camera/color/image_raw/compressed",1,imageCallback);  //for compressed image
     ros::spin();
 
+    const int nsize = 8;
+    for(int j = 0; j < nsize; ++j) {
+        for(int i = 32; i < 127; ++i) {
+            free_image(alphabet[j][i]);
+        }
+        free(alphabet[j]);
+    }
+    free(alphabet);
     free_ptrs((void**)names, net->layers[net->n - 1].classes);
     free_list_contents_kvp(options);
     free_list(options);
