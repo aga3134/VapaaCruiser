@@ -34,6 +34,7 @@ class YoloV5():
 
         self.subImage = rospy.Subscriber("/camera/color/image_raw/compressed",CompressedImage,self.UpdateFrame)
         self.pubImage = rospy.Publisher("yolov5/detected/compressed",CompressedImage,queue_size=1)
+        self.pubDetect = rospy.Publisher("yolov5/object",objectDetectArray,queue_size=1)
 
         # Initialize
         set_logging()
@@ -82,6 +83,7 @@ class YoloV5():
 
                 # Process detections
                 self.outFrame = self.inFrame.copy()
+                odArr = objectDetectArray()
                 for i, det in enumerate(pred):  # detections per image
                     if det is not None and len(det):
                         # Rescale boxes from img_size to image size
@@ -90,9 +92,27 @@ class YoloV5():
                         for *xyxy, conf, cls in reversed(det):
                             label = '%s %.2f' % (self.names[int(cls)], conf)
                             plot_one_box(xyxy, self.outFrame, label=label, color=self.colors[int(cls)], line_thickness=3)
+                            
+                            od = objectDetect()
+                            od.id = int(cls)
+                            od.name = label
+                            x1 = int(xyxy[0])
+                            y1 = int(xyxy[1])
+                            x2 = int(xyxy[2])
+                            y2 = int(xyxy[3])
+                            od.corner[0].x = x1
+                            od.corner[0].y = y1
+                            od.corner[1].x = x2
+                            od.corner[1].y = y1
+                            od.corner[2].x = x2
+                            od.corner[2].y = y2
+                            od.corner[3].x = x1
+                            od.corner[3].y = y2
+                            odArr.object_arr.append(od)
 
                 imageMsg = self.br.cv2_to_compressed_imgmsg(self.outFrame)
                 self.pubImage.publish(imageMsg)
+                self.pubDetect.publish(odArr)
 
             rate.sleep()
 
