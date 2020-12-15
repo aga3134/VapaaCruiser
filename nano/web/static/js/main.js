@@ -23,6 +23,7 @@ var app = new Vue({
             sideRGB:  {name: "/camera/color/image_raw/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
             sideRGB_yolov4:  {name: "/yolov4/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
             sideRGB_yolov5:  {name: "/yolov5/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
+            sideDepth:  {name: "/depth_process/image/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
         },
         service: {
             followTagGetParam:  {name: "/followTag/getParam", type:"vapaa_cruiser/followTagGetParam",instance:null},
@@ -34,7 +35,7 @@ var app = new Vue({
             frontRGB: "static/image/logo.png",
             sideRGB: "static/image/logo.png",
         },
-        sideRGBSelect: "side",    //side,yolov4,yolov5
+        sideRGBSelect: "side",    //side,yolov4,yolov5,depth
         joystick: {
             touch: false,
             x: 0,
@@ -196,6 +197,7 @@ var app = new Vue({
                 this.topic.sideRGB.update = true;
                 this.topic.sideRGB_yolov4.update = true;
                 this.topic.sideRGB_yolov5.update = true;
+                this.topic.sideDepth.update = true;
             }.bind(this), 200);
 
             this.topic.frontRGB.instance = new ROSLIB.Topic({
@@ -245,6 +247,19 @@ var app = new Vue({
                 if(this.sideRGBSelect == "yolov5"){
                     this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
                     this.topic.sideRGB_yolov5.update = false;
+                }
+            }.bind(this));
+
+            this.topic.sideDepth.instance = new ROSLIB.Topic({
+                ros : ros,
+                name : this.topic.sideDepth.name,
+                messageType : this.topic.sideDepth.type
+            });
+            this.topic.sideDepth.instance.subscribe(function(msg) {
+                if(!this.topic.sideDepth.update) return;
+                if(this.sideRGBSelect == "depth"){
+                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
+                    this.topic.sideDepth.update = false;
                 }
             }.bind(this));
 
