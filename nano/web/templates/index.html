@@ -26,7 +26,7 @@
             <div id="mainContent" class="container-fluid text-center main-content">
                 <div class="row">
                     <div class="col-md">
-                        <div class="card h-100">
+                        <div class="card">
                             <div class="map-container">
                                 <div class="map" id="map"></div>
                                 <div class="pos-top-left" data-toggle="tooltip" title="左前方測距">
@@ -35,7 +35,7 @@
                                         warn: status.usFL.indicator=='warn',
                                         danger: status.usFL.indicator=='danger',
                                     }">
-                                        <div>[[this.status.usFL.dist.toFixed(0)]]</div>
+                                        <div>[[status.usFL.dist.toFixed(0)]]</div>
                                     </div>
                                 </div>
                                 <div class="pos-top" data-toggle="tooltip" title="前方測距">
@@ -44,7 +44,7 @@
                                         warn: status.usF.indicator=='warn',
                                         danger: status.usF.indicator=='danger',
                                     }">
-                                        <div>[[this.status.usF.dist.toFixed(0)]]</div>
+                                        <div>[[status.usF.dist.toFixed(0)]]</div>
                                     </div>
                                 </div>
                                 <div class="pos-top-right" data-toggle="tooltip" title="右前方測距">
@@ -53,7 +53,7 @@
                                         warn: status.usFR.indicator=='warn',
                                         danger: status.usFR.indicator=='danger',
                                     }">
-                                        <div>[[this.status.usFR.dist.toFixed(0)]]</div>
+                                        <div>[[status.usFR.dist.toFixed(0)]]</div>
                                     </div>
                                 </div>
                                 <div class="pos-bottom-left" data-toggle="tooltip" title="左後方測距">
@@ -62,7 +62,7 @@
                                         warn: status.usBL.indicator=='warn',
                                         danger: status.usBL.indicator=='danger',
                                     }">
-                                        <div>[[this.status.usBL.dist.toFixed(0)]]</div>
+                                        <div>[[status.usBL.dist.toFixed(0)]]</div>
                                     </div>
                                 </div>
                                 <div class="pos-bottom" data-toggle="tooltip" title="後方測距">
@@ -71,7 +71,7 @@
                                         warn: status.usB.indicator=='warn',
                                         danger: status.usB.indicator=='danger',
                                     }">
-                                        <div>[[this.status.usB.dist.toFixed(0)]]</div>
+                                        <div>[[status.usB.dist.toFixed(0)]]</div>
                                     </div>
                                 </div>
                                 <div class="pos-bottom-right" data-toggle="tooltip" title="右後方測距">
@@ -80,19 +80,20 @@
                                         warn: status.usBR.indicator=='warn',
                                         danger: status.usBR.indicator=='danger',
                                     }">
-                                        <div>[[this.status.usBR.dist.toFixed(0)]]</div>
+                                        <div>[[status.usBR.dist.toFixed(0)]]</div>
                                     </div>
                                 </div>
                             </div>
                             <div class="card-footer">
                                 <div class="card-title">路徑</div>
+                                <div style="font-size:0.5em;">([[status.gps.lat+","+status.gps.lng]])</div>
                             </div>
                         </div>
                         
                     </div>
                     
                     <div class="col-md">
-                        <div class="card h-100">
+                        <div class="card">
                             <img class="card-img-top" :src="imageData.frontRGB">
                             <div class="card-footer">
                                 <div class="card-title">前鏡頭</div>
@@ -111,7 +112,7 @@
                     </div>
 
                     <div class="col-md">
-                        <div class="card h-100">
+                        <div class="card">
                             <img class="card-img-top" :src="imageData.sideRGB">
                             <div class="card-footer">
                                 <div class="card-title">側鏡頭</div>
@@ -134,9 +135,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="w-100 mb-5"></div>
-
                 </div>
             </div>
             <div class="action-bar">
