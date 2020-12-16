@@ -9,8 +9,8 @@
 #define MAX_PULSE 2400
 #define MAX_FORWARD 0.58
 #define MIN_FORWARD 0.42
-#define MAX_TURN 0.8
-#define MIN_TURN 0.4
+#define MAX_TURN 0.85
+#define MIN_TURN 0.35
 #define LIMIT_SPEED_BY_US 1
 
 extern TIM_HandleTypeDef htim8;

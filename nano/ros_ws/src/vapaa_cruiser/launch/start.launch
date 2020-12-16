@@ -19,11 +19,12 @@
     </node>
     <node name="follow_tag_node" pkg="vapaa_cruiser" type="follow_tag_node.py" output="screen">
         <param name="tagID" value="1"/>
-        <param name="keepDist" value="600"/>
+        <param name="keepDist" value="700"/>
         <param name="distTolerance" value="100"/>
         <param name="minAngle" value="-0.78539815"/>
         <param name="maxAngle" value="0.78539815"/>
-        <param name="speedScale" value="0.000015"/>
+        <param name="speedScale" value="0.0005"/>
+        <param name="angleScale" value="1.5"/>
     </node>
     <node name="depth_process_node" pkg="vapaa_cruiser" type="depth_process_node.py" output="screen"> 
         <param name="rate" value="30"/>
