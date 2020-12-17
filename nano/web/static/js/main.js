@@ -198,7 +198,7 @@ var app = new Vue({
                 this.topic.sideRGB_yolov4.update = true;
                 this.topic.sideRGB_yolov5.update = true;
                 this.topic.sideDepth.update = true;
-            }.bind(this), 200);
+            }.bind(this), 300);
 
             this.topic.frontRGB.instance = new ROSLIB.Topic({
                 ros : ros,
@@ -207,8 +207,8 @@ var app = new Vue({
             });
             this.topic.frontRGB.instance.subscribe(function(msg) {
                 if(!this.topic.frontRGB.update) return;
-                this.imageData.frontRGB = "data:image/jpeg;base64,"+msg.data;
                 this.topic.frontRGB.update = false;
+                this.imageData.frontRGB = "data:image/jpeg;base64,"+msg.data;
             }.bind(this));
 
             this.topic.sideRGB.instance = new ROSLIB.Topic({
@@ -219,8 +219,8 @@ var app = new Vue({
             this.topic.sideRGB.instance.subscribe(function(msg) {
                 if(!this.topic.sideRGB.update) return;
                 if(this.sideRGBSelect == "side"){
-                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
                     this.topic.sideRGB.update = false;
+                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
                 }
             }.bind(this));
 
@@ -232,8 +232,8 @@ var app = new Vue({
             this.topic.sideRGB_yolov4.instance.subscribe(function(msg) {
                 if(!this.topic.sideRGB_yolov4.update) return;
                 if(this.sideRGBSelect == "yolov4"){
-                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
                     this.topic.sideRGB_yolov4.update = false;
+                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
                 }
             }.bind(this));
 
@@ -245,8 +245,8 @@ var app = new Vue({
             this.topic.sideRGB_yolov5.instance.subscribe(function(msg) {
                 if(!this.topic.sideRGB_yolov5.update) return;
                 if(this.sideRGBSelect == "yolov5"){
-                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
                     this.topic.sideRGB_yolov5.update = false;
+                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
                 }
             }.bind(this));
 
@@ -258,8 +258,8 @@ var app = new Vue({
             this.topic.sideDepth.instance.subscribe(function(msg) {
                 if(!this.topic.sideDepth.update) return;
                 if(this.sideRGBSelect == "depth"){
-                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
                     this.topic.sideDepth.update = false;
+                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
                 }
             }.bind(this));
 
