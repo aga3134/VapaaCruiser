@@ -120,13 +120,19 @@ unsigned char ParseGPSInfo(char* data, int len){
 							g_GPSInfo.time = atof(term);
 							break;
 						case 2:
-							g_GPSInfo.oriLat = atof(term);
+							if(strcmp(term,"") == 0){
+								g_GPSInfo.oriLat = -9999;
+							}
+							else g_GPSInfo.oriLat = atof(term);
 							break;
 						case 3:
 							g_GPSInfo.dirLat = data[termStart];
 							break;
 						case 4:
-							g_GPSInfo.oriLng = atof(term);
+							if(strcmp(term,"") == 0){
+								g_GPSInfo.oriLng = -9999;
+							}
+							else g_GPSInfo.oriLng = atof(term);
 							break;
 						case 5:
 							g_GPSInfo.dirLng = data[termStart];

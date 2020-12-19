@@ -14,6 +14,7 @@ var app = new Vue({
             usBL:{dist: -1, indicator:""},
             usB:{dist: -1, indicator:""},
             usBR:{dist: -1, indicator:""},
+            posReady: false
         },
         topic: {
             carState:  {name: "/car_state", type:"std_msgs/String",instance:null},
@@ -149,6 +150,11 @@ var app = new Vue({
                     var latDiff = this.status.gps.lat-this.status.preGPS.lat;
                     var lngDiff = this.status.gps.lng-this.status.preGPS.lng;
                     this.status.angle = Math.atan2(-latDiff,lngDiff)*180/Math.PI;
+                    //依gps位置設定地圖中心，若之前已設過就不再設定
+                    if(!this.status.posReady){
+                        this.GoToCurrentPos();
+                        this.status.posReady = true;
+                    }
                 }
                 
                 this.status.usFL.dist = parseFloat(arr[2]);
@@ -865,6 +871,12 @@ var app = new Vue({
         StopNavigation: function(){
             this.SelectPath(-1);
             this.FSMTransition("abort");
+        },
+        GoToCurrentPos: function(){
+            if(!this.navigation.map) return;
+            if(this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)){
+                this.navigation.map.panTo(new L.LatLng(this.status.gps.lat,this.status.gps.lng));
+            }
         }
     }
 });
