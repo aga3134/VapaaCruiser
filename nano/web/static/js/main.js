@@ -2,6 +2,7 @@ var app = new Vue({
     el: '#app',
     data: {
         connectState: "",
+        ros: null,
         status:  {
             robotState: "",
             angle: 0,
@@ -114,25 +115,25 @@ var app = new Vue({
             var wsHost = $("meta[name='ws_host']").attr("content");
             var wsPort = $("meta[name='ws_port']").attr("content");
             
-            var ros = new ROSLIB.Ros({
+            this.ros = new ROSLIB.Ros({
                 url : "ws://"+wsHost+":"+wsPort
             });
         
-            ros.on('connection', function() {
+            this.ros.on('connection', function() {
                 this.connectState = "connected";
             }.bind(this));
         
-            ros.on('error', function(error) {
+            this.ros.on('error', function(error) {
                 this.connectState = error;
             }.bind(this));
         
-            ros.on('close', function() {
+            this.ros.on('close', function() {
                 this.connectState = "closed";
             }.bind(this));
 
             //subscribe topics
             this.topic.carState.instance = new ROSLIB.Topic({
-                ros : ros,
+                ros : this.ros,
                 name : this.topic.carState.name,
                 messageType : this.topic.carState.type
             });
@@ -175,7 +176,7 @@ var app = new Vue({
             }.bind(this));
 
             this.topic.fsmState.instance = new ROSLIB.Topic({
-                ros : ros,
+                ros : this.ros,
                 name : this.topic.fsmState.name,
                 messageType : this.topic.fsmState.type
             });
@@ -191,90 +192,20 @@ var app = new Vue({
                 }
             }.bind(this));
 
-            //控制影像更新頻率，避免太快來不及處理
-            setInterval(function(){
-                this.topic.frontRGB.update = true;
-                this.topic.sideRGB.update = true;
-                this.topic.sideRGB_yolov4.update = true;
-                this.topic.sideRGB_yolov5.update = true;
-                this.topic.sideDepth.update = true;
-            }.bind(this), 300);
-
-            this.topic.frontRGB.instance = new ROSLIB.Topic({
-                ros : ros,
-                name : this.topic.frontRGB.name,
-                messageType : this.topic.frontRGB.type
-            });
-            this.topic.frontRGB.instance.subscribe(function(msg) {
-                if(!this.topic.frontRGB.update) return;
-                this.topic.frontRGB.update = false;
-                this.imageData.frontRGB = "data:image/jpeg;base64,"+msg.data;
-            }.bind(this));
-
-            this.topic.sideRGB.instance = new ROSLIB.Topic({
-                ros : ros,
-                name : this.topic.sideRGB.name,
-                messageType : this.topic.sideRGB.type
-            });
-            this.topic.sideRGB.instance.subscribe(function(msg) {
-                if(!this.topic.sideRGB.update) return;
-                if(this.sideRGBSelect == "side"){
-                    this.topic.sideRGB.update = false;
-                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
-                }
-            }.bind(this));
-
-            this.topic.sideRGB_yolov4.instance = new ROSLIB.Topic({
-                ros : ros,
-                name : this.topic.sideRGB_yolov4.name,
-                messageType : this.topic.sideRGB_yolov4.type
-            });
-            this.topic.sideRGB_yolov4.instance.subscribe(function(msg) {
-                if(!this.topic.sideRGB_yolov4.update) return;
-                if(this.sideRGBSelect == "yolov4"){
-                    this.topic.sideRGB_yolov4.update = false;
-                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
-                }
-            }.bind(this));
-
-            this.topic.sideRGB_yolov5.instance = new ROSLIB.Topic({
-                ros : ros,
-                name : this.topic.sideRGB_yolov5.name,
-                messageType : this.topic.sideRGB_yolov5.type
-            });
-            this.topic.sideRGB_yolov5.instance.subscribe(function(msg) {
-                if(!this.topic.sideRGB_yolov5.update) return;
-                if(this.sideRGBSelect == "yolov5"){
-                    this.topic.sideRGB_yolov5.update = false;
-                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
-                }
-            }.bind(this));
-
-            this.topic.sideDepth.instance = new ROSLIB.Topic({
-                ros : ros,
-                name : this.topic.sideDepth.name,
-                messageType : this.topic.sideDepth.type
-            });
-            this.topic.sideDepth.instance.subscribe(function(msg) {
-                if(!this.topic.sideDepth.update) return;
-                if(this.sideRGBSelect == "depth"){
-                    this.topic.sideDepth.update = false;
-                    this.imageData.sideRGB = "data:image/jpeg;base64,"+msg.data;
-                }
-            }.bind(this));
+            this.UpdateImageSubscribe();
 
             //publish topics
             this.topic.fsmEvent.instance = new ROSLIB.Topic({
-                ros : ros,
+                ros : this.ros,
                 name : this.topic.fsmEvent.name,
                 messageType : this.topic.fsmEvent.type
             });
 
             this.topic.carCmd.instance = new ROSLIB.Topic({
-                ros : ros,
+                ros : this.ros,
                 name : this.topic.carCmd.name,
                 messageType : this.topic.carCmd.type
-              });
+            });
 
             setInterval(function(){
                 if(this.status.robotState != "JOYSTICK_CONTROL") return;
@@ -294,7 +225,7 @@ var app = new Vue({
             
             //services
             this.service.followTagGetParam.instance = new ROSLIB.Service({
-                ros: ros,
+                ros: this.ros,
                 name: this.service.followTagGetParam.name,
                 serviceType : this.service.followTagGetParam.type
             });
@@ -307,22 +238,79 @@ var app = new Vue({
             }.bind(this));
 
             this.service.followTagSetParam.instance = new ROSLIB.Service({
-                ros: ros,
+                ros: this.ros,
                 name: this.service.followTagSetParam.name,
                 serviceType : this.service.followTagSetParam.type
             });
 
             this.service.storeFront.instance = new ROSLIB.Service({
-                ros: ros,
+                ros: this.ros,
                 name: this.service.storeFront.name,
                 serviceType : this.service.storeFront.type
             });
 
             this.service.storeSide.instance = new ROSLIB.Service({
-                ros: ros,
+                ros: this.ros,
                 name: this.service.storeSide.name,
                 serviceType : this.service.storeSide.type
             });
+
+        },
+        UpdateImageSubscribe: function(){
+            var SubscribeImage = function(topicName, dstName){
+                if(!this.topic[topicName].instance){
+                    this.topic[topicName].instance = new ROSLIB.Topic({
+                        ros : this.ros,
+                        name : this.topic[topicName].name,
+                        messageType : this.topic[topicName].type
+                    });
+                    this.topic[topicName].update = true;
+                    this.topic[topicName].instance.subscribe(function(msg) {
+                        if(!this.topic[topicName].update) return;
+                        this.topic[topicName].update = false;
+                        this.imageData[dstName] = "data:image/jpeg;base64,"+msg.data;
+                        this.topic[topicName].update = true;
+                    }.bind(this));
+                }
+            }.bind(this);
+
+            var UnsubscribeImage = function(topicName){
+                if(this.topic[topicName].instance){
+                    this.topic[topicName].instance.unsubscribe(function(){
+                        this.topic[topicName].instance = null;
+                    }.bind(this));
+                }
+            }.bind(this);
+
+            SubscribeImage("frontRGB","frontRGB");
+            
+            //只訂閱要顯示的topic，避免一直lag
+            switch(this.sideRGBSelect){
+                case "side":
+                    SubscribeImage("sideRGB","sideRGB");
+                    UnsubscribeImage("sideRGB_yolov4");
+                    UnsubscribeImage("sideRGB_yolov5");
+                    UnsubscribeImage("sideDepth");
+                    break;
+                case "yolov4":
+                    SubscribeImage("sideRGB_yolov4","sideRGB");
+                    UnsubscribeImage("sideRGB");
+                    UnsubscribeImage("sideRGB_yolov5");
+                    UnsubscribeImage("sideDepth");
+                    break;
+                case "yolov5":
+                    SubscribeImage("sideRGB_yolov5","sideRGB");
+                    UnsubscribeImage("sideRGB");
+                    UnsubscribeImage("sideRGB_yolov4");
+                    UnsubscribeImage("sideDepth");
+                    break;
+                case "depth":
+                    SubscribeImage("sideDepth","sideRGB");
+                    UnsubscribeImage("sideRGB");
+                    UnsubscribeImage("sideRGB_yolov4");
+                    UnsubscribeImage("sideRGB_yolov5");
+                    break;
+            }
 
         },
         InitMap: function(id,pos,zoom){
@@ -472,6 +460,7 @@ var app = new Vue({
         },
         ChangeSideCameraTopic: function(){
             this.imageData.sideRGB = "static/image/logo.png";
+            this.UpdateImageSubscribe();
         },
         CheckGPSValid: function(lat,lng){
             if(lat == null || lng == null) return false;

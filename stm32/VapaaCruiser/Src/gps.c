@@ -93,7 +93,7 @@ unsigned char ParseGPSInfo(char* data, int len){
 	
 	for(i=0;i<len;i++){
 		if(data[i] == '*') break;
-		sum ^= data[i];
+		sum ^= (unsigned char)data[i];
 	}
 	
 	if(ComparePrefix(data,"GNGGA",5)){
@@ -107,7 +107,12 @@ unsigned char ParseGPSInfo(char* data, int len){
 			for(i=0;i<len;i++){
 				if(data[i] == ','){
 					termEnd = i;
-					strncpy(term,data+termStart,termEnd-termStart);
+					if(termEnd == termStart){
+						strcpy(term,"");
+					}
+					else{
+						strncpy(term,data+termStart,termEnd-termStart);
+					}
 					switch(termID){
 						case 0:
 							break;
