@@ -44,7 +44,7 @@ html, body{
     }
     .main-content{
         height: 100%;
-        padding: 80px 10px;
+        padding: 80px 10px 150px 10px;
         overflow: auto;
     }
     .map-container{
@@ -71,6 +71,7 @@ html, body{
         display: flex;
         justify-content: center;
         align-items: center;
+        z-index: 3000;
     }
     .pos-top-left{
         position: absolute;
@@ -147,7 +148,7 @@ html, body{
         box-shadow: 0px 5px 10px #333333;
         -webkit-transition: bottom .5s;
         transition: bottom .5s;
-        z-index: 2000;
+        z-index: 3000;
 
         &.open{
             bottom: 0px;

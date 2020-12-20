@@ -190,12 +190,17 @@ var app = new Vue({
                 this.status.robotState = msg.data;
                 switch(this.status.robotState){
                     case "JOYSTICK_CONTROL":
+                        //手機版搖桿控制時切換到全螢幕，避免drag時網址列一下出現一下不見影響操控
+                        if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+                            this.EnterFullscreen();
+                        }
                         break;
                     case "FOLLOW_TAG":
                         break;
                     case "AUTO_NAVIGATION":
                         break;
                 }
+                console.log("robot state: "+this.status.robotState);
             }.bind(this));
 
             this.UpdateImageSubscribe();
@@ -282,9 +287,8 @@ var app = new Vue({
 
             var UnsubscribeImage = function(topicName){
                 if(this.topic[topicName].instance){
-                    this.topic[topicName].instance.unsubscribe(function(){
-                        this.topic[topicName].instance = null;
-                    }.bind(this));
+                    this.topic[topicName].instance.unsubscribe();
+                    this.topic[topicName].instance = null;
                 }
             }.bind(this);
 
@@ -340,6 +344,7 @@ var app = new Vue({
             }
         },
         FSMTransition: function(event){
+            console.log("transition event: "+event);
             var msg = new ROSLIB.Message({
                 data : event
             });
@@ -877,6 +882,24 @@ var app = new Vue({
             if(this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)){
                 this.navigation.map.panTo(new L.LatLng(this.status.gps.lat,this.status.gps.lng));
             }
+        },
+        EnterFullscreen: function(){
+            var doc = window.document;
+            var docEl = doc.documentElement;
+            var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+            requestFullScreen.call(docEl);
+        },
+        ExitFullscreen: function(){
+            var doc = window.document;
+            var docEl = doc.documentElement;
+            var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+            cancelFullScreen.call(doc);
+        },
+        ExitManualNavigation: function(){
+            this.ExitFullscreen();
+            this.FSMTransition('abort');
         }
     }
 });

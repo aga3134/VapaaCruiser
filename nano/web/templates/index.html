@@ -167,7 +167,7 @@
                                 <span class="material-icons">timeline</span> 儲存路徑
                             </div>
                         </div>
-                        <div class="btn btn-dark m-2" @click="FSMTransition('abort');">
+                        <div class="btn btn-dark m-2" @click="ExitManualNavigation();">
                             <div class="d-flex align-items-center">
                                 <span class="material-icons">close</span> 結束巡航
                             </div>
@@ -292,22 +292,22 @@
                                 <table class="table table-hover">
                                     <thead>
                                     <tr>
-                                        <th>編號</th>
-                                        <th>緯度</th>
-                                        <th>精度</th>
-                                        <th>儲存影像</th>
-                                        <th>上傳影像</th>
-                                        <th></th>
+                                        <th class="align-middle">編號</th>
+                                        <th class="align-middle">緯度</th>
+                                        <th class="align-middle">精度</th>
+                                        <th class="align-middle">儲存影像</th>
+                                        <th class="align-middle">上傳影像</th>
+                                        <th class="align-middle"></th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     <tr v-for="(p,i) in pathEditor.path.ptArr" @click="HighlightPos(i)" @mouseover="HighlightPos(i);" @mouseout="HighlightPos(-1);">
-                                        <td>[[i]]</td>
-                                        <td>[[p.lat]]</td>
-                                        <td>[[p.lng]]</td>
-                                        <td><input type="checkbox" v-model="p.saveImage"></td>
-                                        <td><input type="checkbox" v-model="p.uploadImage"></td>
-                                        <td>
+                                        <td class="align-middle">[[i]]</td>
+                                        <td class="align-middle">[[p.lat]]</td>
+                                        <td class="align-middle">[[p.lng]]</td>
+                                        <td class="align-middle"><input type="checkbox" v-model="p.saveImage"></td>
+                                        <td class="align-middle"><input type="checkbox" v-model="p.uploadImage"></td>
+                                        <td class="align-middle">
                                             <span class="btn material-icons p-1" @click="MovePathPtUp(i);">arrow_upward</span> 
                                             <span class="btn material-icons p-1" @click="MovePathPtDown(i);">arrow_downward</span> 
                                             <span class="btn material-icons p-1" @click="DeletePathPt(i);">close</span> 
