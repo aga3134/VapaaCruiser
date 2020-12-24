@@ -40,7 +40,7 @@ class DepthProcess():
         rate = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
             if self.inFrame is not None:
-                #realsense ros publish 16bit image with  unit mm, scale image value for more  clear  visualization
+                #realsense ros publish 16bit image with  unit 1mm, scale image value for more  clear  visualization
                 self.outFrame = cv2.cvtColor((self.inFrame/20), cv2.COLOR_GRAY2BGR)
 
                 objArr = None
@@ -51,6 +51,12 @@ class DepthProcess():
 
                 if objArr is not None:
                     for obj in objArr:
+                        centerX = int((obj.corner[0].x+obj.corner[1].x+obj.corner[2].x+obj.corner[3].x)*0.25)
+                        centerY = int((obj.corner[0].y+obj.corner[1].y+obj.corner[2].y+obj.corner[3].y)*0.25)
+                        depth = None
+                        shape = self.inFrame.shape
+                        if centerY >= 0 and centerY < shape[0] and centerX >= 0 and centerX < shape[1]:
+                            depth = self.inFrame[centerY,centerX]
                         #print(obj.name)
                         cv2.rectangle(self.outFrame, 
                             (int(obj.corner[0].x), int(obj.corner[0].y)), 
@@ -64,7 +70,9 @@ class DepthProcess():
                         c2 = (c1[0] + textSize[0], c1[1] - textSize[1]-3)
                         cv2.rectangle(self.outFrame, c1, c2, self.colors[obj.id], -1, cv2.LINE_AA)  # filled
                         cv2.putText(self.outFrame, obj.name, (c1[0],c1[1]-2), 0, scale, [255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
-            
+                        if depth is not None:
+                            cv2.putText(self.outFrame,str(depth)+"mm", (int(obj.corner[3].x+3),int(obj.corner[3].y-3)),0,scale,[255,0,0],thickness=1,lineType=cv2.LINE_AA)
+
                 imageMsg = self.br.cv2_to_compressed_imgmsg(self.outFrame)
                 self.pubImage.publish(imageMsg)
                 
