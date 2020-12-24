@@ -56,6 +56,7 @@ class ApriltagDetector():
 
                     tagInfo = apriltagDetect()
                     tagInfo.id = tag.tag_id
+                    tagText = str(tag.tag_id)
                     for i in range(4):
                         tagInfo.corner[i].x = tag.corners[i][0]
                         tagInfo.corner[i].y = tag.corners[i][1]
@@ -72,8 +73,11 @@ class ApriltagDetector():
                         tagInfo.pose.orientation.z = o[2]
                         tagInfo.pose.orientation.w = o[3]
 
+                        tagText += ": "+str(int(p[2]))+"mm"
+
                     infoMsg.tag_array.append(tagInfo)
 
+                    cv2.putText(self.outFrame, tagText, tuple(tag.corners[0].astype(int)), 0, 0.3, [255, 0, 0], thickness=1, lineType=cv2.LINE_AA)
                 imageMsg = self.br.cv2_to_compressed_imgmsg(self.outFrame)
                 self.pubImage.publish(imageMsg)
     
