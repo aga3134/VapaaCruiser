@@ -48,9 +48,6 @@ class CamCapture():
         self.savePath = rospy.get_param("~savePath","captureImage/")
         self.frame = None
 
-    def __del__(self):
-        self.cap.release()
-
     def gstreamer_pipeline(self):
         return (
             "nvarguscamerasrc ! "
@@ -104,6 +101,7 @@ class CamCapture():
             #cv2.imshow('frame',self.frame)
             #cv2.waitKey(1)
             rate.sleep() 
+        self.cap.release()
 
 if __name__ == '__main__':
     rospy.init_node('cam_capture_node')
