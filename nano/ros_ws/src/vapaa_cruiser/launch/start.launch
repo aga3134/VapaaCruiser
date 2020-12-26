@@ -29,6 +29,13 @@
     <node name="depth_process_node" pkg="vapaa_cruiser" type="depth_process_node.py" output="screen"> 
         <param name="rate" value="30"/>
     </node>
+    
+    <node name="web_video_server" pkg="web_video_server" type="web_video_server" output="screen"> 
+        <param name="port" value="8080"/>
+    </node>
+
+    <node name="apriltag_repub" pkg="image_transport" type="republish" output="screen" args="compressed in:=/apriltag/detected raw out:=/apriltag_repub"></node>
+    <node name="depth_process_repub" pkg="image_transport" type="republish" output="screen" args="compressed in:=/depth_process/image raw out:=/depth_process_repub"></node>
 
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="align_depth" value="true"/>

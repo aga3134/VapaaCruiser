@@ -7,4 +7,5 @@
         <param name="device" value="0"/>
         <param name="updateRate" value="30"/>
     </node>
+    <node name="yolov5_repub" pkg="image_transport" type="republish" output="screen" args="compressed in:=/yolov5/detected raw out:=/yolov5_repub"></node>
 </launch>

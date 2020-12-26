@@ -1,3 +1,4 @@
 <launch>
     <node name="yolov4_node" pkg="yolov4" type="yolov4_node" output="screen"></node>
+    <node name="yolov4_repub" pkg="image_transport" type="republish" output="screen" args="compressed in:=/yolov4/detected raw out:=/yolov4_repub"></node>
 </launch>

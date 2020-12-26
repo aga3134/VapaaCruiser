@@ -21,11 +21,11 @@ var app = new Vue({
             fsmState: {name: "/fsm/state",type:"std_msgs/String",instance:null},
             fsmEvent: {name: "/fsm/event",type:"std_msgs/String",instance:null},
             carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist",instance:null},
-            frontRGB:  {name: "/apriltag/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
-            sideRGB:  {name: "/camera/color/image_raw/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
-            sideRGB_yolov4:  {name: "/yolov4/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
-            sideRGB_yolov5:  {name: "/yolov5/detected/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
-            sideDepth:  {name: "/depth_process/image/compressed", type:"sensor_msgs/CompressedImage",instance:null,update:false},
+            frontRGB:  {name: "/apriltag_repub"},
+            sideRGB:  {name: "/camera/color/image_raw"},
+            sideRGB_yolov4:  {name: "/yolov4_repub"},
+            sideRGB_yolov5:  {name: "/yolov5_repub"},
+            sideDepth:  {name: "/depth_process_repub"},
         },
         service: {
             followTagGetParam:  {name: "/followTag/getParam", type:"vapaa_cruiser/followTagGetParam",instance:null},
@@ -268,57 +268,23 @@ var app = new Vue({
 
         },
         UpdateImageSubscribe: function(){
-            var SubscribeImage = function(topicName, dstName){
-                if(!this.topic[topicName].instance){
-                    this.topic[topicName].instance = new ROSLIB.Topic({
-                        ros : this.ros,
-                        name : this.topic[topicName].name,
-                        messageType : this.topic[topicName].type
-                    });
-                    this.topic[topicName].update = true;
-                    this.topic[topicName].instance.subscribe(function(msg) {
-                        if(!this.topic[topicName].update) return;
-                        this.topic[topicName].update = false;
-                        this.imageData[dstName] = "data:image/jpeg;base64,"+msg.data;
-                        this.topic[topicName].update = true;
-                    }.bind(this));
-                }
-            }.bind(this);
-
-            var UnsubscribeImage = function(topicName){
-                if(this.topic[topicName].instance){
-                    this.topic[topicName].instance.unsubscribe();
-                    this.topic[topicName].instance = null;
-                }
-            }.bind(this);
-
-            SubscribeImage("frontRGB","frontRGB");
+            var wsHost = $("meta[name='ws_host']").attr("content");
+	    var url = "http://"+wsHost+":8080/stream?topic="
             
-            //只訂閱要顯示的topic，避免一直lag
+            //用web video server的影像，直接訂閱image topic會一直lag
+            this.imageData["frontRGB"] = url+this.topic.frontRGB.name;
             switch(this.sideRGBSelect){
                 case "side":
-                    SubscribeImage("sideRGB","sideRGB");
-                    UnsubscribeImage("sideRGB_yolov4");
-                    UnsubscribeImage("sideRGB_yolov5");
-                    UnsubscribeImage("sideDepth");
+                    this.imageData["sideRGB"] = url+this.topic.sideRGB.name;
                     break;
                 case "yolov4":
-                    SubscribeImage("sideRGB_yolov4","sideRGB");
-                    UnsubscribeImage("sideRGB");
-                    UnsubscribeImage("sideRGB_yolov5");
-                    UnsubscribeImage("sideDepth");
+                    this.imageData["sideRGB"] = url+this.topic.sideRGB_yolov4.name;
                     break;
                 case "yolov5":
-                    SubscribeImage("sideRGB_yolov5","sideRGB");
-                    UnsubscribeImage("sideRGB");
-                    UnsubscribeImage("sideRGB_yolov4");
-                    UnsubscribeImage("sideDepth");
+                    this.imageData["sideRGB"] = url+this.topic.sideRGB_yolov5.name;
                     break;
                 case "depth":
-                    SubscribeImage("sideDepth","sideRGB");
-                    UnsubscribeImage("sideRGB");
-                    UnsubscribeImage("sideRGB_yolov4");
-                    UnsubscribeImage("sideRGB_yolov5");
+                    this.imageData["sideRGB"] = url+this.topic.sideDepth.name;
                     break;
             }
 
