@@ -88,7 +88,7 @@ class SerialCommand():
             checksum += ch
         checksum = checksum%256
         msg.append(checksum)
-        rospy.loginfo("%x %x %x %x %x %x" % (msg[0],msg[1],msg[2],msg[3],msg[4],msg[5]))
+        #rospy.loginfo("%x %x %x %x %x %x" % (msg[0],msg[1],msg[2],msg[3],msg[4],msg[5]))
         self.ser.write(bytearray(msg))
 
         self.readyReceive = True
