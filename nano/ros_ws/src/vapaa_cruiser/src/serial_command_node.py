@@ -19,8 +19,14 @@ class SerialCommand():
         self.ser = serial.Serial(self.port, self.baud)
         self.pub = rospy.Publisher("car_state", String,  queue_size=1)
         self.sub = rospy.Subscriber("car_cmd", Twist, self.ReceiveCmd)
+        self.readyReceive = True
 
     def ReceiveCmd(self,cmd):
+        #use readyReceive flag to avoid send multiple messages at the same time
+        if not self.readyReceive:
+            return
+        self.readyReceive = False
+
         curForward = cmd.linear.x
         curTurn = cmd.angular.z
 
@@ -82,8 +88,10 @@ class SerialCommand():
             checksum += ch
         checksum = checksum%256
         msg.append(checksum)
-        #rospy.loginfo("%x %x %x %x %x %x" % (msg[0],msg[1],msg[2],msg[3],msg[4],msg[5]))
+        rospy.loginfo("%x %x %x %x %x %x" % (msg[0],msg[1],msg[2],msg[3],msg[4],msg[5]))
         self.ser.write(bytearray(msg))
+
+        self.readyReceive = True
 
 
     def ReceiveState(self,state):

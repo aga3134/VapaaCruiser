@@ -66,7 +66,7 @@ unsigned char ParseCommand(){
 	enum ParseState state = HEADER;
 	Command cmd = {0};
 	unsigned char d, sum = 0, valid = 0;
-	unsigned short start = 0, end = 0;
+	unsigned short start = 0, end = 0, argIndex = 0;
 	
 	//判斷是否有完整command
 	for(i=0;i<len && !valid;i++){
@@ -91,13 +91,18 @@ unsigned char ParseCommand(){
 				sum += d;
 				cmd.argNum = d;
 				if(cmd.argNum == 0) state = CHECKSUM;
-				else state = ARGS;
+				else{
+					if(cmd.argNum > CMD_MAX_ARG) return 0;	//invalid argNum
+					state = ARGS;
+					argIndex = 0;
+				}
 				break;
 			case ARGS:
 				end++;
 				sum += d;
-				cmd.args[end-start-3] = d;
-				if(end == start+2+cmd.argNum) state = CHECKSUM;
+				cmd.args[argIndex] = d;
+				argIndex++;
+				if(argIndex >= cmd.argNum) state = CHECKSUM;
 				break;
 			case CHECKSUM:
 				end++;
