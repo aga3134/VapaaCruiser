@@ -86,7 +86,7 @@ unsigned char ComparePrefix(char* str, char* prefix, int len){
 }
 
 unsigned char ParseGPSInfo(char* data, int len){
-	int i=0,termID=0,termStart=0,termEnd=0;
+	int i=0,j=0,termID=0,termStart=0,termEnd=0;
 	char term[32] = {0};
 	unsigned char sum = 0,checkSum=0;
 	enum MessageType type = UNKNOWN;
@@ -172,7 +172,19 @@ unsigned char ParseGPSInfo(char* data, int len){
 					strncpy(g_GPSInfo.checkSum,data+i+1,2);
 				}
 			}
-			checkSum = strtol(g_GPSInfo.checkSum, NULL, 16);
+			//checkSum = strtol(g_GPSInfo.checkSum, NULL, 16);
+			//stm32的strtol會算錯，自己做convert
+			checkSum = 0;
+			for(j=0;j<2;j++){
+				checkSum = checkSum << (4*j);
+				char c = g_GPSInfo.checkSum[j];
+				if(c >= '0' && c <= '9'){
+					checkSum += (c-'0');
+				}
+				else if(c >= 'a' && c <= 'f'){
+					checkSum += (10+c-'a');
+				}
+			}
 			if(g_GPSInfo.quality != 0 && sum == checkSum){
 				ConvertLatLng();
 				return 1;

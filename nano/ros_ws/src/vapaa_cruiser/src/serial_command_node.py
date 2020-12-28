@@ -97,6 +97,7 @@ class SerialCommand():
     def ReceiveState(self,state):
         msg = String()
         msg.data = state
+        #print(state)
         self.pub.publish(msg)
 
     def ReadFromSerial(self):
