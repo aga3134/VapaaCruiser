@@ -65,11 +65,13 @@ unsigned char ParseCommand(){
 	int len = FIFOBufferGetDataSize(&g_CmdRxBuffer);
 	enum ParseState state = HEADER;
 	Command cmd = {0};
-	unsigned char d, sum = 0, valid = 0;
+	unsigned char d, sum = 0, valid = 0, err = 0;
 	unsigned short start = 0, end = 0, argIndex = 0;
 	
 	//判斷是否有完整command
 	for(i=0;i<len && !valid;i++){
+		if(valid || err) break;	//已讀到完整command或出現error
+		
 		FIFOBufferPeekData(&g_CmdRxBuffer,&d,i);
 		switch(state){
 			case HEADER:
@@ -92,7 +94,7 @@ unsigned char ParseCommand(){
 				cmd.argNum = d;
 				if(cmd.argNum == 0) state = CHECKSUM;
 				else{
-					if(cmd.argNum > CMD_MAX_ARG) return 0;	//invalid argNum
+					if(cmd.argNum > CMD_MAX_ARG) err = 1;	//invalid argNum
 					state = ARGS;
 					argIndex = 0;
 				}
@@ -112,19 +114,27 @@ unsigned char ParseCommand(){
 				break;
 		}
 	}
-	//清掉command及之前的資料
-	FIFOBufferClear(&g_CmdRxBuffer,end);
+	
+	if(state == CHECKSUM){	//已讀到完整command
+		//清掉command及之前的資料
+		FIFOBufferClear(&g_CmdRxBuffer,end);
+		if(valid){	//checksum檢驗ok
+			ProcessCommand(&cmd);
+			return 1;
+		}
+	}
+	else{
+		//清掉之前的資料，保留未完整的command
+		if(start > 0){
+			FIFOBufferClear(&g_CmdRxBuffer,start-1);
+		}
+	}
 	
 	//有時候接收會斷掉，這邊定時重啟接收
 	if(g_CmdStart){
 		HAL_UART_Receive_IT(&huart1,&g_CmdInData,1);
 	}
 	
-	if(state == CHECKSUM){	//已讀到完整command
-		if(valid){	//checksum檢驗ok
-			ProcessCommand(&cmd);
-			return 1;
-		}
-	}
+	
 	return 0;	//command未完整，下次再讀
 }
