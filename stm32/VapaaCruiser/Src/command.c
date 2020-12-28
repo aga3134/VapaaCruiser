@@ -124,8 +124,12 @@ unsigned char ParseCommand(){
 		}
 	}
 	else{
+		//有錯誤，清空到錯誤的地方
+		if(err){
+			FIFOBufferClear(&g_CmdRxBuffer,end);
+		}
 		//清掉之前的資料，保留未完整的command
-		if(start > 0){
+		else if(start > 0){
 			FIFOBufferClear(&g_CmdRxBuffer,start-1);
 		}
 	}
