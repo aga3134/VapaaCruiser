@@ -708,6 +708,7 @@ var app = new Vue({
                 if(this.navigation.loop) this.navigation.curTargetIndex = 0;
                 else return;
             }
+            if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)) return;
 
             //compute move command
             var target = this.navigation.curPath.path.ptArr[this.navigation.curTargetIndex];
@@ -771,20 +772,20 @@ var app = new Vue({
                 if(this.autoDrive.targetTurn < -1) this.autoDrive.targetTurn = -1;
             }
             //update command by PID controller
-            var errForward = this.targetForward - this.curForward;
-            var errTurn = this.targetTurn = this.curTurn;
+            var errForward = this.autoDrive.targetForward - this.autoDrive.curForward;
+            var errTurn = this.autoDrive.targetTurn - this.autoDrive.curTurn;
             var errDiffForward = errForward - this.autoDrive.errForward;
             var errDiffTurn = errTurn - this.autoDrive.errTurn;
             this.autoDrive.errSumForward += errForward;
             this.autoDrive.errSumTurn += errTurn;
-            
+
             this.autoDrive.curForward += 
-                this.errForward*this.autoDrive.forwardP+
+                errForward*this.autoDrive.forwardP+
                 this.autoDrive.errSumForward*this.autoDrive.forwardI+
                 errDiffForward*this.autoDrive.forwardD;
 
             this.autoDrive.curTurn += 
-                this.errTurn*this.autoDrive.turnP+
+                errTurn*this.autoDrive.turnP+
                 this.autoDrive.errSumTurn*this.autoDrive.turnI+
                 errDiffTurn*this.autoDrive.turnD;
 
@@ -796,7 +797,8 @@ var app = new Vue({
             if(this.autoDrive.curForward < -1) this.autoDrive.curForward = -1;
             if(this.autoDrive.curTurn > 1) this.autoDrive.curTurn = 1;
             if(this.autoDrive.curTurn < -1) this.autoDrive.curTurn = -1;
-
+            
+            //console.log(this.autoDrive);
             //send command message
             var twist = new ROSLIB.Message({
                 linear : {x : this.autoDrive.curForward, y : 0, z : 0},
@@ -864,7 +866,9 @@ var app = new Vue({
             cancelFullScreen.call(doc);
         },
         ExitManualNavigation: function(){
-            this.ExitFullscreen();
+            if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+                this.ExitFullscreen();
+            }
             this.FSMTransition('abort');
         }
     }

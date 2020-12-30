@@ -325,6 +325,7 @@ html, body {
   width: 600px;
   padding: 10px;
   max-height: 100%;
+  overflow-y: auto;
   max-width: 100%;
   background-color: #eeeeee;
   border-radius: 10px;
