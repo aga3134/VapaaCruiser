@@ -708,8 +708,11 @@ var app = new Vue({
                 if(this.navigation.loop) this.navigation.curTargetIndex = 0;
                 else return;
             }
+	    
+            //this.status.angle = 0;
+	    //this.status.gps.lat = 23;
+	    //this.status.gps.lng = 121;
             if(!this.CheckGPSValid(this.status.gps.lat,this.status.gps.lng)) return;
-
             //compute move command
             var target = this.navigation.curPath.path.ptArr[this.navigation.curTargetIndex];
             var curDir = [
@@ -724,6 +727,8 @@ var app = new Vue({
             var targetNorm = Math.sqrt(targetDir[0]*targetDir[0]+targetDir[1]*targetDir[1]);
 
             var tolerance = 1e-5;
+	    var forwardLimit = 0.8;
+	    var turnLimit = 1;
             if(targetNorm < tolerance){  //target arrival
                 this.navigation.curTargetIndex++;
                 return;
@@ -765,11 +770,11 @@ var app = new Vue({
                     this.autoDrive.targetTurn += turnForce;
                     this.autoDrive.targetForward += breakForce;
                 }
-                //limit target to -1~1
-                if(this.autoDrive.targetForward > 1) this.autoDrive.targetForward = 1;
-                if(this.autoDrive.targetForward < -1) this.autoDrive.targetForward = -1;
-                if(this.autoDrive.targetTurn > 1) this.autoDrive.targetTurn = 1;
-                if(this.autoDrive.targetTurn < -1) this.autoDrive.targetTurn = -1;
+                //limit target magnitude
+                if(this.autoDrive.targetForward > forwardLimit) this.autoDrive.targetForward = forwardLimit;
+                if(this.autoDrive.targetForward < -forwardLimit) this.autoDrive.targetForward = -forwardLimit;
+                if(this.autoDrive.targetTurn > turnLimit) this.autoDrive.targetTurn = turnLimit;
+                if(this.autoDrive.targetTurn < -turnLimit) this.autoDrive.targetTurn = -turnLimit;
             }
             //update command by PID controller
             var errForward = this.autoDrive.targetForward - this.autoDrive.curForward;
@@ -792,11 +797,11 @@ var app = new Vue({
             this.autoDrive.errForward = errForward;
             this.autoDrive.errTurn = errTurn;
 
-            //limit command to -1~1
-            if(this.autoDrive.curForward > 1) this.autoDrive.curForward = 1;
-            if(this.autoDrive.curForward < -1) this.autoDrive.curForward = -1;
-            if(this.autoDrive.curTurn > 1) this.autoDrive.curTurn = 1;
-            if(this.autoDrive.curTurn < -1) this.autoDrive.curTurn = -1;
+            //limit command
+            if(this.autoDrive.curForward > forwardLimit) this.autoDrive.curForward = forwardLimit;
+            if(this.autoDrive.curForward < -forwardLimit) this.autoDrive.curForward = -forwardLimit;
+            if(this.autoDrive.curTurn > turnLimit) this.autoDrive.curTurn = turnLimit;
+            if(this.autoDrive.curTurn < -turnLimit) this.autoDrive.curTurn = -turnLimit;
             
             //console.log(this.autoDrive);
             //send command message
