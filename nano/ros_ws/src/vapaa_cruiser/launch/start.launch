@@ -43,8 +43,31 @@
         <arg name="color_height" value="240"/>
         <arg name="depth_width" value="640"/>
         <arg name="depth_height" value="480"/>
+        <arg name="unite_imu_method" value="linear_interpolation"/>
+        <arg name="enable_gyro" value="true" />
+        <arg name="enable_accel" value="true" />
     </include>
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" > 
         <arg name="port" value="9090"/>
+    </include>
+
+    <node name="imu_filter_node" pkg="imu_filter_madgwick" type="imu_filter_node" output="screen"> 
+        <param name="use_mag" value="false"/>
+        <param name="publish_tf" value="false"/>
+        <param name="world_frame" value="enu"/>
+        <remap from="/imu/data_raw" to="/camera/imu"/>
+        <remap from="/imu/data" to="/rtabmap/imu"/>
+    </node>
+    
+    <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
+        <arg name="rtabmap_args" value="--delete_db_on_start --Optimizer/GravitySigma 0.3"/>
+        <arg name="depth_topic" value="/camera/aligned_depth_to_color/image_raw"/>
+        <arg name="rgb_topic" value="/camera/color/image_raw"/>
+        <arg name="camera_info_topic" value="/camera/color/camera_info"/>
+        <arg name="approx_sync" value="false"/>
+        <arg name="wait_imu_to_init" value="true"/>
+        <arg name="imu_topic" value="/rtabmap/imu" />
+        <arg name="localization" value="true" />
+        <arg name="rtabmapviz" value="false" />
     </include>
 </launch>

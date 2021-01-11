@@ -727,7 +727,7 @@ var app = new Vue({
             var targetNorm = Math.sqrt(targetDir[0]*targetDir[0]+targetDir[1]*targetDir[1]);
 
             var tolerance = 1e-5;
-	    var forwardLimit = 0.8;
+	    var forwardLimit = 0.9;
 	    var turnLimit = 1;
             if(targetNorm < tolerance){  //target arrival
                 this.navigation.curTargetIndex++;
