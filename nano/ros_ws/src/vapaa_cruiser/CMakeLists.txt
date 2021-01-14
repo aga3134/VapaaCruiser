@@ -55,6 +55,7 @@ add_message_files(
   apriltagDetectArray.msg
   objectDetect.msg
   objectDetectArray.msg
+  mapPose.msg
 )
 
 ## Generate services in the 'srv' folder

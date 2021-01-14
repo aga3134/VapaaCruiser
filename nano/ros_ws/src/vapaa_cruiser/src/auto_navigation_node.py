@@ -93,30 +93,36 @@ class AutoNavigation():
         r = 6378137 #地球半徑(m)
         self.Trans["scale"] = 180.0/(r*math.pi)
 
-        self.Trans["mappingArr"].append({
-            "x": x, "y": y, "lat": lat, "lng": lng,
-            "dx": 0, "dy": 0, "dLat":0, "dLng":0
-        })
         dSize = len(self.Trans["mappingArr"])
-        if dSize >= 2:  #compute difference
+        if dSize < 2:
+            self.Trans["mappingArr"].append({
+                "x": x, "y": y, "lat": lat, "lng": lng,
+                "dx": 0, "dy": 0, "dLat":0, "dLng":0
+            })
+        else:  #compute difference
+            newPt = {
+                "x": x, "y":y, "lat":lat, "lng":lng
+            }
             lastPt = self.Trans["mappingArr"][dSize-1]
-            last2Pt = self.Trans["mappingArr"][dSize-2]
-            lastPt["dx"] = lastPt["x"] - last2Pt["x"]
-            lastPt["dy"] = lastPt["y"] - last2Pt["y"]
-            lastPt["dLat"] = lastPt["lat"] - last2Pt["lat"]
-            lastPt["dLng"] = lastPt["lng"] - last2Pt["lng"]
-            lastPt["dLng"] *= math.cos(last2Pt["lat"])
-            self.Trans["dxSum"] += lastPt["dx"]
-            self.Trans["dySum"] += lastPt["dy"]
-            self.Trans["dLatSum"] += lastPt["dLat"]
-            self.Trans["dLngSum"] += lastPt["dLng"]
+            newPt["dx"] = newPt["x"] - lastPt["x"]
+            newPt["dy"] = newPt["y"] - lastPt["y"]
+            if newPt["dx"]*newPt["dx"]+newPt["dy"]*newPt["dy"] < 0.01:  #距離太近，不加入計算
+                return
+            newPt["dLat"] = (newPt["lat"] - lastPt["lat"])
+            newPt["dLng"] = (newPt["lng"] - lastPt["lng"])
+            newPt["dLng"] *= math.cos(lastPt["lat"])
+            self.Trans["mappingArr"].append(newPt)
+            self.Trans["dxSum"] += newPt["dx"]
+            self.Trans["dySum"] += newPt["dy"]
+            self.Trans["dLatSum"] += newPt["dLat"]
+            self.Trans["dLngSum"] += newPt["dLng"]
 
         if len(self.Trans["mappingArr"]) > self.Trans["maxNum"]:    #moving window
             firstPt = self.Trans["mappingArr"][0]
-            self.Trans["dxSum"] -= lastPt["dx"]
-            self.Trans["dySum"] -= lastPt["dy"]
-            self.Trans["dLatSum"] -= lastPt["dLat"]
-            self.Trans["dLngSum"] -= lastPt["dLng"]
+            self.Trans["dxSum"] -= firstPt["dx"]
+            self.Trans["dySum"] -= firstPt["dy"]
+            self.Trans["dLatSum"] -= firstPt["dLat"]
+            self.Trans["dLngSum"] -= firstPt["dLng"]
             self.Trans["mappingArr"].pop(0)
             dSize = len(self.Trans["mappingArr"])
 
@@ -128,14 +134,14 @@ class AutoNavigation():
         if latLngNorm == 0:
             return
         xyVec = [self.Trans["dxSum"]/xyNorm, self.Trans["dySum"]/xyNorm]
-        latLngVec = [self.Trans["dLatSum"]/latLngNorm, self.Trans["dLngSum"]/latLngNorm]
+        latLngVec = [self.Trans["dLngSum"]/latLngNorm, self.Trans["dLatSum"]/latLngNorm]
         dot = xyVec[0]*latLngVec[0]+xyVec[1]*latLngVec[1]
         cross = xyVec[0]*latLngVec[1]-xyVec[1]*latLngVec[0]
         self.Trans["angle"] = math.atan2(cross,dot)
 
         #compute offset between xy & latlng
-        cosAngle = math.cos(self.Trans["angle"])
-        sinAngle = math.sin(self.Trans["angle"])
+        cosAngle = dot
+        sinAngle = cross
         offsetXSum = 0
         offsetYSum = 0
         for pt in self.Trans["mappingArr"]:
@@ -145,12 +151,12 @@ class AutoNavigation():
             if cosLat == 0: #極地
                 continue
             x = x/cosLat
-            offsetXSum += (pt["lat"]-x)
-            offsetYSum += (pt["lng"]-y)
+            offsetXSum += (pt["lng"]-x)
+            offsetYSum += (pt["lat"]-y)
         self.Trans["offsetX"] = offsetXSum/dSize
         self.Trans["offsetY"] = offsetYSum/dSize
 
-        print(self.Trans)
+        print([self.Trans["scale"],self.Trans["angle"],self.Trans["offsetX"],self.Trans["offsetY"]])
 
     def XYToLatLng(self,x,y):
         cosAngle = math.cos(self.Trans["angle"])
@@ -173,21 +179,28 @@ class AutoNavigation():
         offsetY = 23
         angle = 30.0*math.pi/180.0
         scale = 180.0/(6378137*math.pi)
+        #print([scale,angle,offsetX,offsetY])
 
         cosAngle = math.cos(angle)
         sinAngle = math.sin(angle)
         self.lat = scale*(sinAngle*x+cosAngle*y)+offsetY
         self.lng = scale*(cosAngle*x-sinAngle*y)/math.cos(self.lat)+offsetX
+        #print([x,y,self.lat,self.lng])
 
     def Run(self):
         rate = rospy.Rate(self.updateRate)
+        start = rospy.Time.now()
         while not rospy.is_shutdown():
             try:
                 #get car pose from odometry
-                pose = self.tfBuffer.lookup_transform("car", "map", rospy.Time())
+                pose = self.tfBuffer.lookup_transform("camera_link", "map", rospy.Time()).transform
+                elapse = (rospy.Time.now()-start)
+                it = elapse.secs+elapse.nsecs*1e-9
+                #pose.translation.x = t
+                #pose.translation.y = t
                 #angle = tf.transformations.euler_from_quaternion(pose.rotation)
-                self.GenFakeLatLng(pose.translate.x,pose.translate.y)
-                self.UpdateOdomToGPSTransform(pose.translate.x,pose.translate.y,self.lat,self.lng)
+                self.GenFakeLatLng(pose.translation.x,pose.translation.y)
+                self.UpdateOdomToGPSTransform(pose.translation.x,pose.translation.y,self.lat,self.lng)
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
                 rospy.logwarn("auto_navigation lookup transform error")
             rate.sleep()
