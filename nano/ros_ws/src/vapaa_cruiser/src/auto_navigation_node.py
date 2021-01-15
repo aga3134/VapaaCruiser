@@ -124,7 +124,7 @@ class AutoNavigation():
             self.Trans["dLatSum"] -= firstPt["dLat"]
             self.Trans["dLngSum"] -= firstPt["dLng"]
             self.Trans["mappingArr"].pop(0)
-            dSize = len(self.Trans["mappingArr"])
+        dSize = len(self.Trans["mappingArr"])
 
         #compute angle between xy & latlng
         xyNorm = math.sqrt(self.Trans["dxSum"]*self.Trans["dxSum"]+self.Trans["dySum"]*self.Trans["dySum"])
@@ -195,7 +195,7 @@ class AutoNavigation():
                 #get car pose from odometry
                 pose = self.tfBuffer.lookup_transform("camera_link", "map", rospy.Time()).transform
                 elapse = (rospy.Time.now()-start)
-                it = elapse.secs+elapse.nsecs*1e-9
+                t = elapse.secs+elapse.nsecs*1e-9
                 #pose.translation.x = t
                 #pose.translation.y = t
                 #angle = tf.transformations.euler_from_quaternion(pose.rotation)
