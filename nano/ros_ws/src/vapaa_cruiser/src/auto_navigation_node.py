@@ -44,23 +44,22 @@ class AutoNavigation():
 
         self.tfBuffer = tf2_ros.Buffer()
         self.tfListener = tf2_ros.TransformListener(self.tfBuffer)
-        #publish transform between camera_link and car
+        
+        #realsense向左看，對z軸旋轉-90度才是車體正前方
+        #tf tree: /map -> /odom -> /camera_link -> /car
         broadcaster = tf2_ros.StaticTransformBroadcaster()
         t = geometry_msgs.msg.TransformStamped()
         t.header.stamp = rospy.Time.now()
-        t.header.frame_id = "car"
-        t.child_frame_id = "camera_link"
-
+        t.header.frame_id = "camera_link"
+        t.child_frame_id = "car"
         t.transform.translation.x = 0
         t.transform.translation.y = 0
         t.transform.translation.z = 0
-
         quat = tf.transformations.quaternion_from_euler(0,0,-math.pi*0.5)
         t.transform.rotation.x = quat[0]
         t.transform.rotation.y = quat[1]
         t.transform.rotation.z = quat[2]
         t.transform.rotation.w = quat[3]
-
         broadcaster.sendTransform(t)
 
     def UpdateState(self,msg):
