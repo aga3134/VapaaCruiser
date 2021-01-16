@@ -17,15 +17,16 @@ var app = new Vue({
             posReady: false
         },
         topic: {
-            carState:  {name: "/car_state", type:"std_msgs/String",instance:null},
-            fsmState: {name: "/fsm/state",type:"std_msgs/String",instance:null},
-            fsmEvent: {name: "/fsm/event",type:"std_msgs/String",instance:null},
+            carState:{name:"/car_state", type:"std_msgs/String",instance:null},
+            mapPose:{name:"/map_pose", type:"vapaa_cruiser/mapPose",instance:null},
+            fsmState:{name:"/fsm/state",type:"std_msgs/String",instance:null},
+            fsmEvent:{name:"/fsm/event",type:"std_msgs/String",instance:null},
             carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist",instance:null},
-            frontRGB:  {name: "/apriltag_repub"},
-            sideRGB:  {name: "/camera/color/image_raw"},
-            sideRGB_yolov4:  {name: "/yolov4_repub"},
-            sideRGB_yolov5:  {name: "/yolov5_repub"},
-            sideDepth:  {name: "/depth_process_repub"},
+            frontRGB:{name:"/apriltag_repub"},
+            sideRGB:{name:"/camera/color/image_raw"},
+            sideRGB_yolov4:{name:"/yolov4_repub"},
+            sideRGB_yolov5:{name:"/yolov5_repub"},
+            sideDepth:{name:"/depth_process_repub"},
         },
         service: {
             followTagGetParam:  {name: "/followTag/getParam", type:"vapaa_cruiser/followTagGetParam",instance:null},
@@ -140,23 +141,7 @@ var app = new Vue({
             });
             this.topic.carState.instance.subscribe(function(msg) {
                 var arr = msg.data.split(",");
-                var lat = parseFloat(arr[0]);
-                var lng = parseFloat(arr[1]);
-                if(this.CheckGPSValid(lat,lng)){
-                    this.status.preGPS.lat = this.status.gps.lat;
-                    this.status.preGPS.lng = this.status.gps.lng;
-                    this.status.gps.lat = lat;
-                    this.status.gps.lng = lng;
-                    var latDiff = this.status.gps.lat-this.status.preGPS.lat;
-                    var lngDiff = this.status.gps.lng-this.status.preGPS.lng;
-                    this.status.angle = Math.atan2(-latDiff,lngDiff)*180/Math.PI;
-                    //依gps位置設定地圖中心，若之前已設過就不再設定
-                    if(!this.status.posReady){
-                        this.GoToCurrentPos();
-                        this.status.posReady = true;
-                    }
-                }
-                
+                //位置使用mapPose topic的數值，carState的lat,lng是直接從gps sensor輸出，跳動大且沒有旋轉角度
                 this.status.usFL.dist = parseFloat(arr[2]);
                 this.status.usF.dist = parseFloat(arr[3]);
                 this.status.usFR.dist = parseFloat(arr[4]);
@@ -177,9 +162,27 @@ var app = new Vue({
                 this.status.usB.indicator = ComputeIndicator(this.status.usB.dist);
                 this.status.usBR.indicator = ComputeIndicator(this.status.usBR.dist);
 
-                this.AutoDrive();
+                //this.AutoDrive();
                 this.UpdateNavigation();
             }.bind(this));
+
+            this.topic.mapPose.instance = new ROSLIB.Topic({
+                ros : this.ros,
+                name : this.topic.mapPose.name,
+                messageType : this.topic.mapPose.type
+            });
+            this.topic.mapPose.instance.subscribe(function(msg){
+		if(this.CheckGPSValid(msg.lat,msg.lng)){
+                    this.status.gps.lat = msg.lat;
+                    this.status.gps.lng = msg.lng;
+                    this.status.angle = msg.angle;
+                    //依gps位置設定地圖中心，若之前已設過就不再設定
+                    if(!this.status.posReady){
+                        this.GoToCurrentPos();
+                        this.status.posReady = true;
+                    }
+                }
+	    }.bind(this));
 
             this.topic.fsmState.instance = new ROSLIB.Topic({
                 ros : this.ros,

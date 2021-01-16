@@ -70,4 +70,8 @@
         <arg name="localization" value="true" />
         <arg name="rtabmapviz" value="false" />
     </include>
+
+    <node name="auto_navigation_node" pkg="vapaa_cruiser" type="auto_navigation_node.py" output="screen"> 
+    </node>
+    
 </launch>

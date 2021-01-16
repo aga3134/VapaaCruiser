@@ -35,7 +35,8 @@ class AutoNavigation():
             "angle": 0,
             "scale": 0,
             "offsetX": 0,
-            "offsetY": 0
+            "offsetY": 0,
+            "inited": False
         }
         self.startNavSrv = rospy.Service("auto_navigation/start", Trigger, self.ServiceStartNav)
         self.stopNavSrv = rospy.Service("auto_navigation/stop", Trigger, self.ServiceStopNav)
@@ -155,7 +156,7 @@ class AutoNavigation():
         self.Trans["offsetX"] = offsetXSum/dSize
         self.Trans["offsetY"] = offsetYSum/dSize
 
-        print([self.Trans["scale"],self.Trans["angle"],self.Trans["offsetX"],self.Trans["offsetY"]])
+        #print([self.Trans["scale"],self.Trans["angle"],self.Trans["offsetX"],self.Trans["offsetY"]])
 
     def XYToLatLng(self,x,y):
         cosAngle = math.cos(self.Trans["angle"])
@@ -176,7 +177,7 @@ class AutoNavigation():
     def GenFakeLatLng(self,x,y): #generate fake lat lng for testing
         offsetX = 121
         offsetY = 23
-        angle = 30.0*math.pi/180.0
+        angle = -180.0*math.pi/180.0
         scale = 180.0/(6378137*math.pi)
         #print([scale,angle,offsetX,offsetY])
 
@@ -192,16 +193,31 @@ class AutoNavigation():
         while not rospy.is_shutdown():
             try:
                 #get car pose from odometry
-                pose = self.tfBuffer.lookup_transform("camera_link", "map", rospy.Time()).transform
+                pose = self.tfBuffer.lookup_transform("car", "map", rospy.Time()).transform
                 elapse = (rospy.Time.now()-start)
                 t = elapse.secs+elapse.nsecs*1e-9
                 #pose.translation.x = t
                 #pose.translation.y = t
-                #angle = tf.transformations.euler_from_quaternion(pose.rotation)
                 self.GenFakeLatLng(pose.translation.x,pose.translation.y)
+                if not self.Trans["inited"]:
+                    self.Trans["angle"] = 0
+                    self.Trans["offsetX"] = self.lng
+                    self.Trans["offsetY"] = self.lat
+                    self.Trans["inited"] = True
                 self.UpdateOdomToGPSTransform(pose.translation.x,pose.translation.y,self.lat,self.lng)
+                
+                latlng = self.XYToLatLng(pose.translation.x,pose.translation.y)
+                q = [pose.rotation.x,pose.rotation.y,pose.rotation.z,pose.rotation.w]
+                angle = tf.transformations.euler_from_quaternion(q)
+                mapPoseMsg = mapPose()
+                mapPoseMsg.lat = latlng["lat"]
+                mapPoseMsg.lng = latlng["lng"]
+                mapPoseMsg.angle = (angle[2]+self.Trans["angle"])*180/math.pi
+                self.pubMapPose.publish(mapPoseMsg)
+
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
-                rospy.logwarn("auto_navigation lookup transform error")
+                #rospy.logwarn("auto_navigation lookup transform error")
+                pass
             rate.sleep()
 
 if __name__ == '__main__':
