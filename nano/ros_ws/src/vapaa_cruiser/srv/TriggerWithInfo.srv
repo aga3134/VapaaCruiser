@@ -1,3 +1,4 @@
 string info
 ---
 bool success
+string message

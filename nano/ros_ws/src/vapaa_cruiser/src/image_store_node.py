@@ -88,17 +88,29 @@ class ImageStore():
         try:
             self.storeFrontInfo = json.loads(request.info)
             self.triggerFront = True
-            return True
+            return TriggerWithInfoResponse(
+                success=True,
+                message=""
+            )
         except:
-            return False
+            return TriggerWithInfoResponse(
+                success=False,
+                message=""
+            )
 
     def ImageStoreSide(self,request):
         try:
             self.storeSideInfo = json.loads(request.info)
             self.triggerSide = True
-            return True
+            return TriggerWithInfoResponse(
+                success=True,
+                message=""
+            )
         except:
-            return False
+            return TriggerWithInfoResponse(
+                success=False,
+                message=""
+            )
 
 if __name__ == '__main__':
     rospy.init_node('image_store_node')

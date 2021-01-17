@@ -10,15 +10,21 @@ from vapaa_cruiser.msg import NavState
 from vapaa_cruiser.srv import TriggerWithInfo,TriggerWithInfoResponse
 import math
 import numpy as np
+import json
+import sqlite3
+import rospkg
 
 class AutoNavigation():
     def __init__(self):
         self.updateRate = rospy.get_param("~updateRate",30)
+        rospack = rospkg.RosPack()
+        self.dbFile = rospy.get_param("~dbFile",rospack.get_path("vapaa_cruiser")+"/../../../web/vapaa_cruiser.db")
 
         self.subCarState = rospy.Subscriber("car_state",String,self.UpdateState)
         self.pubNavState = rospy.Publisher("nav_state",NavState,queue_size=1)
 
         self.navState = "stop"
+        self.navPause = False
         self.navLoop = False
         self.pathID = ""
         self.lat = -9999
@@ -41,7 +47,7 @@ class AutoNavigation():
         }
         self.srvStartNav = rospy.Service("autoNavigation/start", TriggerWithInfo, self.ServiceStartNav)
         self.srvStopNav = rospy.Service("autoNavigation/stop", Trigger, self.ServiceStopNav)
-        self.srvPauseNav = rospy.Service("autoNavigation/pause", Trigger, self.ServicePauseNav)
+        self.srvPauseNav = rospy.Service("autoNavigation/pause", SetBool, self.ServiceSetPause)
         self.srvSetLoop = rospy.Service("autoNavigation/setLoop", SetBool, self.ServiceSetLoop)
 
         self.tfBuffer = tf2_ros.Buffer()
@@ -76,9 +82,27 @@ class AutoNavigation():
         self.usDist["RB"] = data[7]
 
     def ServiceStartNav(self,request):
+        info = json.loads(request.info)
+        conn = sqlite3.connect(self.dbFile)
+        c = conn.cursor()
+        cmd = "SELECT * FROM NavigationPath WHERE id='%s';" % (info["id"])
+        row = c.execute(cmd).fetchone()
+        conn.close()
+        if row is None:
+            return TriggerWithInfoResponse(
+                success=False,
+                message="path not exist"
+            )
+        p = {
+            "id": row[0],
+            "userID": row[1],
+            "path": json.loads(row[2])
+        }
         self.navState = "start"
-        print(self.navState)
-        return TriggerWithInfoResponse(True)
+        return TriggerWithInfoResponse(
+            success=True,
+            message=json.dumps(p)
+        )
 
     def ServiceStopNav(self,request):
         self.navState = "stop"
@@ -88,10 +112,10 @@ class AutoNavigation():
             message=""
         )
 
-    def ServicePauseNav(self,request):
-        self.navState = "pause"
-        print(self.navState)
-        return TriggerResponse(
+    def ServiceSetPause(self,request):
+        self.navPause = request.data
+        print(self.navPause)
+        return SetBoolResponse(
             success=True,
             message=""
         )
@@ -128,7 +152,7 @@ class AutoNavigation():
                 return
             newPt["dLat"] = (newPt["lat"] - lastPt["lat"])
             newPt["dLng"] = (newPt["lng"] - lastPt["lng"])
-            newPt["dLng"] *= math.cos(lastPt["lat"])
+            newPt["dLng"] *= math.cos(lastPt["lat"]*math.pi/180.0)
             self.Trans["mappingArr"].append(newPt)
             self.Trans["dxSum"] += newPt["dx"]
             self.Trans["dySum"] += newPt["dy"]
@@ -165,7 +189,7 @@ class AutoNavigation():
         for pt in self.Trans["mappingArr"]:
             x = self.Trans["scale"]*(cosAngle*pt["x"]-sinAngle*pt["y"])
             y = self.Trans["scale"]*(sinAngle*pt["x"]+cosAngle*pt["y"])
-            cosLat = math.cos(pt["lat"])
+            cosLat = math.cos(pt["lat"]*math.pi/180.0)
             if cosLat == 0: #極地
                 continue
             x = x/cosLat
@@ -180,7 +204,7 @@ class AutoNavigation():
         cosAngle = math.cos(self.Trans["angle"])
         sinAngle = math.sin(self.Trans["angle"])
         lat = self.Trans["scale"]*(sinAngle*x+cosAngle*y)+self.Trans["offsetY"]
-        lng = self.Trans["scale"]*(cosAngle*x-sinAngle*y)/math.cos(lat)+self.Trans["offsetX"]
+        lng = self.Trans["scale"]*(cosAngle*x-sinAngle*y)/math.cos(lat*math.pi/180.0)+self.Trans["offsetX"]
         return {"lat":lat, "lng":lng}
 
     def LatLngToXY(self,lat,lng):
@@ -202,7 +226,7 @@ class AutoNavigation():
         cosAngle = math.cos(angle)
         sinAngle = math.sin(angle)
         self.lat = scale*(sinAngle*x+cosAngle*y)+offsetY
-        self.lng = scale*(cosAngle*x-sinAngle*y)/math.cos(self.lat)+offsetX
+        self.lng = scale*(cosAngle*x-sinAngle*y)/math.cos(self.lat*math.pi/180.0)+offsetX
         #print([x,y,self.lat,self.lng])
 
     def Run(self):
@@ -233,6 +257,7 @@ class AutoNavigation():
                 navStateMsg.angle = (angle[2]+self.Trans["angle"])*180/math.pi
                 navStateMsg.state = self.navState
                 navStateMsg.loop = self.navLoop
+                navStateMsg.pause = self.navPause
                 navStateMsg.pathID = ""
                 navStateMsg.targetIndex = 0
                 self.pubNavState.publish(navStateMsg)

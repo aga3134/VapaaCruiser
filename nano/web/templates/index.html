@@ -230,8 +230,8 @@
                                 <div class="">循環</div>
                                 <input class="m-2" type="checkbox" v-model="navigation.loop" @change="ToggleAutoNavLoop();">
                             </div>
-                            <div class="material-icons btn p-1" v-show="navigation.curPath && navigation.pause" @click="UpdateAutoNavPause(false);">play_arrow</div>
-                            <div class="material-icons btn p-1" v-show="navigation.curPath && !navigation.pause" @click="UpdateAutoNavPause(true);">pause</div>
+                            <div class="material-icons btn p-1" v-show="navigation.curPath && navigation.pause" @click="SetAutoNavPause(false);">play_arrow</div>
+                            <div class="material-icons btn p-1" v-show="navigation.curPath && !navigation.pause" @click="SetAutoNavPause(true);">pause</div>
                             <div class="material-icons btn p-1" v-show="navigation.curPath" @click="SelectPath(-1)">close</div>
                         </div>
                     </div>

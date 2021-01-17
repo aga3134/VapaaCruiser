@@ -179,7 +179,7 @@ var app = new Vue({
             this.topic.navState.instance.subscribe(function(msg){
                 this.navigation.selectPathID = msg.pathID;
                 this.navigation.loop = msg.loop;
-                this.navigation.pause = msg.state == "pause";
+                this.navigation.pause = msg.pause;
                 this.navigation.targetIndex = msg.targetIndex;
 
                 if(this.CheckGPSValid(msg.lat,msg.lng)){
@@ -654,14 +654,14 @@ var app = new Vue({
             if(this.navigation.pause) return;
             if(this.navigation.curTargetIndex < 0) return;
             if(this.navigation.curTargetIndex >= this.navigation.curPath.path.ptArr.length) return;
-            var target = this.navigation.curPath.path.ptArr[this.navigation.curTargetIndex];
+            var target = this.navigation.curPath.path.ptArr[this.navigation.targetIndex];
             this.navigation.targetMarker = L.marker(target);
             this.navigation.targetMarker.addTo(this.navigation.map);
 
         },
         OpenPathSelect: function(){
             this.navigation.openPathSelect = true;
-            this.navigation.pause = true;
+	    this.SetAutoNavPause(true);
             $.get("/path/list", function(result){
                 if(result.status != "ok") return toastr.error("讀取路徑失敗");
                 this.navigation.pathList = result.data;
@@ -681,14 +681,24 @@ var app = new Vue({
                 this.navigation.pathLine = null;
             }
             this.navigation.targetIndex = -1;
-            if(i<0 || i>= this.navigation.pathList.length) return;
+            if(i<0 || i>= this.navigation.pathList.length){
+                var request = new ROSLIB.ServiceRequest({});
+                this.service.autoNavStop.instance.callService(request, function(result){
+                    toastr.success("取消路徑");
+		}.bind(this));
+	        return;
+	    }
 
+	    var pathID = this.navigation.pathList[i].id;
             var request = new ROSLIB.ServiceRequest({
-                info: JSON.stringify({id: this.navigation.pathList[i].id})
+                info: JSON.stringify({
+		    id: pathID
+		})
             });
             this.service.autoNavStart.instance.callService(request, function(result) {
                 if(result.success){
-                    this.navigation.curPath = this.navigation.pathList[i];
+		    var path = JSON.parse(result.message);
+                    this.navigation.curPath = this.navigation.pathHash[path.id];
 
                     //add path line to map
                     var latlngs = [];
@@ -712,30 +722,19 @@ var app = new Vue({
         },
         ResumePath: function(){
             this.navigation.openPathSelect = false;
-            this.UpdateAutoNavPause(false);
+            this.SetAutoNavPause(false);
         },
         ToggleAutoNavLoop: function(){
 	    var loop = this.navigation.loop;
             var request = new ROSLIB.ServiceRequest({data: loop});
             this.service.autoNavSetLoop.instance.callService(request, function(result) {
-                console.log(loop);
-		if(result.success){
-                    this.navigation.loop = loop;
-                }
-                else{
-                    toastr.error("更新失敗");
-                }
-            }.bind(this));
+               this.navigation.loop = loop; 
+	    }.bind(this));
         },
-        UpdateAutoNavPause: function(pause){
+        SetAutoNavPause: function(pause){
             var request = new ROSLIB.ServiceRequest({data: pause});
             this.service.autoNavPause.instance.callService(request, function(result) {
-		if(result.success){
-                    this.navigation.pause = pause;
-                }
-                else{
-                    toastr.error("更新失敗");
-                }
+                this.navigation.pause = pause;
             }.bind(this));
         },
         DeletePath: function(i){
