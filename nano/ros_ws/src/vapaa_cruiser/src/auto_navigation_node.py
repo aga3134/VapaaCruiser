@@ -6,7 +6,8 @@ import tf2_ros
 from std_msgs.msg import String
 from std_srvs.srv import Trigger, SetBool
 import geometry_msgs.msg
-from vapaa_cruiser.msg import mapPose
+from vapaa_cruiser.msg import NavState
+from vapaa_cruiser.srv import TriggerWithInfo
 import math
 import numpy as np
 
@@ -14,10 +15,10 @@ class AutoNavigation():
     def __init__(self):
         self.updateRate = rospy.get_param("~updateRate",30)
 
-        self.subState = rospy.Subscriber("car_state",String,self.UpdateState)
-        self.pubMapPose = rospy.Publisher("map_pose",mapPose,queue_size=1)
+        self.subCarState = rospy.Subscriber("car_state",String,self.UpdateState)
+        self.pubNavState = rospy.Publisher("nav_state",NavState,queue_size=1)
 
-        self.navState = "pause"
+        self.navState = "stop"
         self.navLoop = False
         self.pathID = ""
         self.lat = -9999
@@ -38,10 +39,10 @@ class AutoNavigation():
             "offsetY": 0,
             "inited": False
         }
-        self.startNavSrv = rospy.Service("auto_navigation/start", Trigger, self.ServiceStartNav)
-        self.stopNavSrv = rospy.Service("auto_navigation/stop", Trigger, self.ServiceStopNav)
-        self.pauseNavSrv = rospy.Service("auto_navigation/pause", Trigger, self.ServicePauseNav)
-        self.setLoopSrv = rospy.Service("auto_navigation/setLoop", SetBool, self.ServiceSetLoop)
+        self.srvStartNav = rospy.Service("autoNavigation/start", TriggerWithInfo, self.ServiceStartNav)
+        self.srvStopNav = rospy.Service("autoNavigation/stop", Trigger, self.ServiceStopNav)
+        self.srvPauseNav = rospy.Service("autoNavigation/pause", Trigger, self.ServicePauseNav)
+        self.srvSetLoop = rospy.Service("autoNavigation/setLoop", SetBool, self.ServiceSetLoop)
 
         self.tfBuffer = tf2_ros.Buffer()
         self.tfListener = tf2_ros.TransformListener(self.tfBuffer)
@@ -76,12 +77,15 @@ class AutoNavigation():
 
     def ServiceStartNav(self,request):
         self.navState = "start"
+        print("start")
 
     def ServiceStopNav(self,request):
         self.navState = "stop"
+        print("stop")
 
     def ServicePauseNav(self,request):
         self.navState = "pause"
+        print("pause")
 
     def ServiceSetLoop(self,request):
         self.navLoop = request.data
@@ -209,11 +213,15 @@ class AutoNavigation():
                 latlng = self.XYToLatLng(pose.translation.x,pose.translation.y)
                 q = [pose.rotation.x,pose.rotation.y,pose.rotation.z,pose.rotation.w]
                 angle = tf.transformations.euler_from_quaternion(q)
-                mapPoseMsg = mapPose()
-                mapPoseMsg.lat = latlng["lat"]
-                mapPoseMsg.lng = latlng["lng"]
-                mapPoseMsg.angle = (angle[2]+self.Trans["angle"])*180/math.pi
-                self.pubMapPose.publish(mapPoseMsg)
+                navStateMsg = navState()
+                navStateMsg.lat = latlng["lat"]
+                navStateMsg.lng = latlng["lng"]
+                navStateMsg.angle = (angle[2]+self.Trans["angle"])*180/math.pi
+                navStateMsg.state = self.navState
+                navStateMsg.loop = self.navLoop
+                navStateMsg.pathID = None
+                navStateMsg.targetIndex = 0
+                self.pubNavState.publish(navStateMsg)
 
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
                 #rospy.logwarn("auto_navigation lookup transform error")

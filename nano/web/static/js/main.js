@@ -18,7 +18,7 @@ var app = new Vue({
         },
         topic: {
             carState:{name:"/car_state", type:"std_msgs/String",instance:null},
-            mapPose:{name:"/map_pose", type:"vapaa_cruiser/mapPose",instance:null},
+            navState:{name:"/map_pose", type:"vapaa_cruiser/navState",instance:null},
             fsmState:{name:"/fsm/state",type:"std_msgs/String",instance:null},
             fsmEvent:{name:"/fsm/event",type:"std_msgs/String",instance:null},
             carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist",instance:null},
@@ -29,10 +29,14 @@ var app = new Vue({
             sideDepth:{name:"/depth_process_repub"},
         },
         service: {
-            followTagGetParam:  {name: "/followTag/getParam", type:"vapaa_cruiser/followTagGetParam",instance:null},
-            followTagSetParam:  {name: "/followTag/setParam", type:"vapaa_cruiser/followTagSetParam",instance:null},
-            storeFront: {name: "/imageStore/front", type:"vapaa_cruiser/imageStoreInfo",instance:null},
-            storeSide: {name: "/imageStore/side", type:"vapaa_cruiser/imageStoreInfo",instance:null},
+            followTagGetParam:  {name: "/followTag/getParam", type:"vapaa_cruiser/FollowTagGetParam",instance:null},
+            followTagSetParam:  {name: "/followTag/setParam", type:"vapaa_cruiser/FollowTagSetParam",instance:null},
+            storeFront: {name: "/imageStore/front", type:"vapaa_cruiser/TriggerWithInfo",instance:null},
+            storeSide: {name: "/imageStore/side", type:"vapaa_cruiser/TriggerWithInfo",instance:null},
+            autoNavStart: {name: "/autoNavigation/start", type:"std_srvs/TriggerWithInfo",instance:null},
+            autoNavStop: {name: "/autoNavigation/stop", type:"std_srvs/Trigger",instance:null},
+            autoNavPause: {name: "/autoNavigation/pause", type:"std_srvs/Trigger",instance:null},
+            autoNavSetLoop: {name: "/autoNavigation/setLoop", type:"std_srvs/SetBool",instance:null},
         },
         imageData:{
             frontRGB: "static/image/logo.png",
@@ -60,9 +64,10 @@ var app = new Vue({
             pathLine: null,
             openPathSelect: false,
             pathList: [],
-            selectIndex: -1,
+            pathHash: {},
+            selectPathID: null,
+            targetIndex: 0,
             curPath: null,
-            curTargetIndex: -1,
             loop: false,
             pause: false
         },
@@ -141,7 +146,7 @@ var app = new Vue({
             });
             this.topic.carState.instance.subscribe(function(msg) {
                 var arr = msg.data.split(",");
-                //位置使用mapPose topic的數值，carState的lat,lng是直接從gps sensor輸出，跳動大且沒有旋轉角度
+                //位置使用navState topic的數值，carState的lat,lng是直接從gps sensor輸出，跳動大且沒有旋轉角度
                 this.status.usFL.dist = parseFloat(arr[2]);
                 this.status.usF.dist = parseFloat(arr[3]);
                 this.status.usFR.dist = parseFloat(arr[4]);
@@ -166,13 +171,18 @@ var app = new Vue({
                 this.UpdateNavigation();
             }.bind(this));
 
-            this.topic.mapPose.instance = new ROSLIB.Topic({
+            this.topic.navState.instance = new ROSLIB.Topic({
                 ros : this.ros,
-                name : this.topic.mapPose.name,
-                messageType : this.topic.mapPose.type
+                name : this.topic.navState.name,
+                messageType : this.topic.navState.type
             });
-            this.topic.mapPose.instance.subscribe(function(msg){
-		if(this.CheckGPSValid(msg.lat,msg.lng)){
+            this.topic.navState.instance.subscribe(function(msg){
+                this.navigation.selectPathID = msg.pathID;
+                this.navigation.loop = msg.loop;
+                this.navigation.pause = msg.state == "pause";
+                this.navigation.targetIndex = msg.targetIndex;
+
+                if(this.CheckGPSValid(msg.lat,msg.lng)){
                     this.status.gps.lat = msg.lat;
                     this.status.gps.lng = msg.lng;
                     this.status.angle = msg.angle;
@@ -267,6 +277,30 @@ var app = new Vue({
                 ros: this.ros,
                 name: this.service.storeSide.name,
                 serviceType : this.service.storeSide.type
+            });
+
+            this.service.autoNavStart.instance = new ROSLIB.Service({
+                ros: this.ros,
+                name: this.service.autoNavStart.name,
+                serviceType : this.service.autoNavStart.type
+            });
+
+            this.service.autoNavStop.instance = new ROSLIB.Service({
+                ros: this.ros,
+                name: this.service.autoNavStop.name,
+                serviceType : this.service.autoNavStop.type
+            });
+
+            this.service.autoNavPause.instance = new ROSLIB.Service({
+                ros: this.ros,
+                name: this.service.autoNavPause.name,
+                serviceType : this.service.autoNavPause.type
+            });
+
+            this.service.autoNavSetLoop.instance = new ROSLIB.Service({
+                ros: this.ros,
+                name: this.service.autoNavSetLoop.name,
+                serviceType : this.service.autoNavSetLoop.type
             });
 
         },
@@ -631,40 +665,76 @@ var app = new Vue({
             $.get("/path/list", function(result){
                 if(result.status != "ok") return toastr.error("讀取路徑失敗");
                 this.navigation.pathList = result.data;
+                this.navigation.pathHash = {};
+                for(var i=0;i<this.navigation.pathList.length;i++){
+                    var p = this.navigation.pathList[i];
+                    this.navigation.pathHash[p.id] = p;
+                }
             }.bind(this));
         },
         SelectPath: function(i){
             this.navigation.curPath = null;
-            this.navigation.selectIndex = -1;
+            this.navigation.selectPathID = null;
             this.navigation.openPathSelect = false;
             if(this.navigation.pathLine){
                 this.navigation.map.removeLayer(this.navigation.pathLine);
                 this.navigation.pathLine = null;
             }
-            this.navigation.curTargetIndex = -1;
+            this.navigation.targetIndex = -1;
             if(i<0 || i>= this.navigation.pathList.length) return;
-            
-            this.navigation.curPath = this.navigation.pathList[i];
-            this.navigation.selectIndex = i;
-            this.navigation.pause = false;
-            this.navigation.curTargetIndex = 0;
 
-            //add path line to map
-            var latlngs = [];
-            var arr = this.navigation.curPath.path.ptArr;
-            for(var i=0;i<arr.length;i++){
-                var pt = arr[i]
-                pt.lat = parseFloat(pt.lat);
-                pt.lng = parseFloat(pt.lng);
-                latlngs.push([pt.lat,pt.lng]);
-            }
-            this.navigation.pathLine = L.polyline(latlngs, {color: "red"});
-            this.navigation.pathLine.addTo(this.navigation.map);
-            this.navigation.map.fitBounds(this.navigation.pathLine.getBounds());
+            var request = new ROSLIB.ServiceRequest({
+                info: JSON.stringify({id: this.navigation.pathList[i].id})
+            });
+            this.service.autoNavStart.instance.callService(request, function(result) {
+                if(result.success){
+                    this.navigation.curPath = this.navigation.pathList[i];
+
+                    //add path line to map
+                    var latlngs = [];
+                    var arr = this.navigation.curPath.path.ptArr;
+                    for(var i=0;i<arr.length;i++){
+                        var pt = arr[i]
+                        pt.lat = parseFloat(pt.lat);
+                        pt.lng = parseFloat(pt.lng);
+                        latlngs.push([pt.lat,pt.lng]);
+                    }
+                    this.navigation.pathLine = L.polyline(latlngs, {color: "red"});
+                    this.navigation.pathLine.addTo(this.navigation.map);
+                    this.navigation.map.fitBounds(this.navigation.pathLine.getBounds());
+                }
+                else{
+                    toastr.error("選擇路徑失敗");
+                }
+            }.bind(this));
+            
+            
         },
         ResumePath: function(){
-            this.navigation.pause = false;
             this.navigation.openPathSelect = false;
+            this.UpdateAutoNavPause(false);
+        },
+        UpdateAutoNavLoop: function(loop){
+            var request = new ROSLIB.ServiceRequest({data: loop});
+            this.service.autoNavLoop.instance.callService(request, function(result) {
+                if(result.success){
+                    this.navigation.loop = loop;
+                }
+                else{
+                    toastr.error("更新失敗");
+                }
+            }.bind(this));
+        },
+        UpdateAutoNavPause: function(pause){
+            var request = new ROSLIB.ServiceRequest({data: pause});
+            this.service.autoNavLoop.instance.callService(request, function(result) {
+                if(result.success){
+                    this.navigation.pause = pause;
+                }
+                else{
+                    toastr.error("更新失敗");
+                }
+            }.bind(this));
         },
         DeletePath: function(i){
             this.navigation.curPath = null;

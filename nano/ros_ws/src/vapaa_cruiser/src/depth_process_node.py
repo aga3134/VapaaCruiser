@@ -4,7 +4,7 @@ import rospy
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage,Image, CameraInfo
-from vapaa_cruiser.msg import objectDetect,objectDetectArray
+from vapaa_cruiser.msg import ObjectDetect,ObjectDetectArray
 import numpy as np
 from numpy import random
 
@@ -13,8 +13,8 @@ class DepthProcess():
         self.br = CvBridge()
         self.pubImage = rospy.Publisher("depth_process/image/compressed",CompressedImage,queue_size=1)
         self.subImage = rospy.Subscriber("camera/aligned_depth_to_color/image_raw",Image,self. RecieveDepth)
-        self.subYolov4 = rospy.Subscriber("yolov4/object",objectDetectArray,self. RecieveYolov4)
-        self.subYolov5 = rospy.Subscriber("yolov5/object",objectDetectArray,self. RecieveYolov5)
+        self.subYolov4 = rospy.Subscriber("yolov4/object",ObjectDetectArray,self. RecieveYolov4)
+        self.subYolov5 = rospy.Subscriber("yolov5/object",ObjectDetectArray,self. RecieveYolov5)
         self.inFrame = None
         self.outFrame = None
         self.yolov4Obj = None

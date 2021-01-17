@@ -51,19 +51,19 @@ catkin_python_setup()
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  apriltagDetect.msg
-  apriltagDetectArray.msg
-  objectDetect.msg
-  objectDetectArray.msg
-  mapPose.msg
+  ApriltagDetect.msg
+  ApriltagDetectArray.msg
+  ObjectDetect.msg
+  ObjectDetectArray.msg
+  NavState.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  followTagGetParam.srv
-  followTagSetParam.srv
-  imageStoreInfo.srv
+  FollowTagGetParam.srv
+  FollowTagSetParam.srv
+  TriggerWithInfo.srv
 )
 
 ## Generate actions in the 'action' folder

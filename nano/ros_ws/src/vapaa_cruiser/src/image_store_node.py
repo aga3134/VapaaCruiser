@@ -5,7 +5,7 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage, CameraInfo
 from std_srvs.srv import Trigger, TriggerResponse
-from vapaa_cruiser.srv import imageStoreInfo
+from vapaa_cruiser.srv import TriggerWIthInfo
 import json
 import numpy as np
 import os
@@ -29,8 +29,8 @@ class ImageStore():
         
         self.subFront = rospy.Subscriber("image/compressed",CompressedImage,self.RecieveFrontImage)
         self.subSide = rospy.Subscriber("/camera/color/image_raw/compressed",CompressedImage,self.RecieveSideImage)
-        self.srvImageStoreFront = rospy.Service("imageStore/front", imageStoreInfo, self.ImageStoreFront)
-        self.srvImageStoreFront = rospy.Service("imageStore/side", imageStoreInfo, self.ImageStoreSide)
+        self.srvImageStoreFront = rospy.Service("imageStore/front", TriggerWithInfo, self.ImageStoreFront)
+        self.srvImageStoreFront = rospy.Service("imageStore/side", TriggerWithInfo, self.ImageStoreSide)
 
     def SaveImage(self,frame,savePath):
         if not os.path.exists(savePath):

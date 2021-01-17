@@ -5,7 +5,7 @@ import cv2
 import apriltag
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage, CameraInfo
-from vapaa_cruiser.msg import apriltagDetectArray, apriltagDetect
+from vapaa_cruiser.msg import ApriltagDetectArray, ApriltagDetect
 import tf
 
 class ApriltagDetector():
@@ -23,7 +23,7 @@ class ApriltagDetector():
         self.subImage = rospy.Subscriber("image/compressed",CompressedImage,self.UpdateFrame)
         self.subInfo = rospy.Subscriber("image/info",CameraInfo,self.UpdateCameraInfo)
         self.pubImage = rospy.Publisher("apriltag/detected/compressed",CompressedImage,queue_size=1)
-        self.pubInfo = rospy.Publisher("apriltag/detected/info",apriltagDetectArray,queue_size=1)
+        self.pubInfo = rospy.Publisher("apriltag/detected/info",ApriltagDetectArray,queue_size=1)
 
     def UpdateCameraInfo(self,msg):
         self.camParam = [msg.K[0], msg.K[4], msg.K[2], msg.K[5]]
@@ -43,7 +43,7 @@ class ApriltagDetector():
             if self.frameReady:
                 gray = cv2.cvtColor(self.inFrame, cv2.COLOR_BGR2GRAY)
                 self.outFrame = self.inFrame.copy()
-                infoMsg = apriltagDetectArray()
+                infoMsg = ApriltagDetectArray()
                 infoMsg.header.frame_id = self.frameID
                 infoMsg.header.stamp = rospy.Time.now()
 
@@ -54,7 +54,7 @@ class ApriltagDetector():
                     cv2.line(self.outFrame, tuple(tag.corners[2].astype(int)), tuple(tag.corners[3].astype(int)), (255, 0, 0), 2)
                     cv2.line(self.outFrame, tuple(tag.corners[3].astype(int)), tuple(tag.corners[0].astype(int)), (255, 0, 0), 2)
 
-                    tagInfo = apriltagDetect()
+                    tagInfo = ApriltagDetect()
                     tagInfo.id = tag.tag_id
                     tagText = str(tag.tag_id)
                     for i in range(4):
