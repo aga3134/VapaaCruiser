@@ -4,4 +4,4 @@ float32 angle
 string state
 bool loop
 string pathID
-int targetIndex
+int32 targetIndex

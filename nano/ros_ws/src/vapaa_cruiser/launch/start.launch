@@ -69,6 +69,7 @@
         <arg name="imu_topic" value="/rtabmap/imu" />
         <arg name="localization" value="true" />
         <arg name="rtabmapviz" value="false" />
+        <arg name="output" value="log" />
     </include>
 
     <node name="auto_navigation_node" pkg="vapaa_cruiser" type="auto_navigation_node.py" output="screen"> 

@@ -2,8 +2,8 @@
 #include "ros/package.h"
 #include "std_msgs/String.h"
 #include "sensor_msgs/CompressedImage.h"
-#include "vapaa_cruiser/objectDetect.h"
-#include "vapaa_cruiser/objectDetectArray.h"
+#include "vapaa_cruiser/ObjectDetect.h"
+#include "vapaa_cruiser/ObjectDetectArray.h"
 #include "darknet.h"
 #include "option_list.h"
 #include "image.h"
@@ -89,7 +89,7 @@ void imageCallback(const sensor_msgs::CompressedImageConstPtr& msg){  //for comp
         yoloPub.publish(msg);
   
         //publish detected object
-        vapaa_cruiser::objectDetectArray odArr;
+        vapaa_cruiser::ObjectDetectArray odArr;
         odArr.header.stamp = ros::Time::now();
         for(int i=0;i<nboxes;i++){
             float bestP = thresh;
@@ -104,7 +104,7 @@ void imageCallback(const sensor_msgs::CompressedImageConstPtr& msg){  //for comp
             }
 
             if(bestClass >= 0){
-                vapaa_cruiser::objectDetect od;
+                vapaa_cruiser::ObjectDetect od;
                 od.id = bestClass;
                 od.name = names[bestClass];
                 int left = (det.bbox.x - det.bbox.w / 2.)*dst->width;
@@ -166,7 +166,7 @@ int main(int argc, char **argv){
 
     //cvNamedWindow("image");
     yoloPub = nh.advertise<sensor_msgs::CompressedImage>("yolov4/detected/compressed", 1);
-    detectPub = nh.advertise<vapaa_cruiser::objectDetectArray>("yolov4/object", 1);
+    detectPub = nh.advertise<vapaa_cruiser::ObjectDetectArray>("yolov4/object", 1);
     ros::Subscriber sub = nh.subscribe("/camera/color/image_raw/compressed",1,imageCallback);  //for compressed image
     ros::spin();
 

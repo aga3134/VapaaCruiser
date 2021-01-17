@@ -4,7 +4,7 @@ import rospy
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage, CameraInfo
-from vapaa_cruiser.msg import objectDetect,objectDetectArray
+from vapaa_cruiser.msg import ObjectDetect,ObjectDetectArray
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -34,7 +34,7 @@ class YoloV5():
 
         self.subImage = rospy.Subscriber("/camera/color/image_raw/compressed",CompressedImage,self.UpdateFrame)
         self.pubImage = rospy.Publisher("yolov5/detected/compressed",CompressedImage,queue_size=1)
-        self.pubDetect = rospy.Publisher("yolov5/object",objectDetectArray,queue_size=1)
+        self.pubDetect = rospy.Publisher("yolov5/object",ObjectDetectArray,queue_size=1)
 
         # Initialize
         set_logging()
@@ -83,7 +83,7 @@ class YoloV5():
 
                 # Process detections
                 self.outFrame = self.inFrame.copy()
-                odArr = objectDetectArray()
+                odArr = ObjectDetectArray()
                 odArr.header.stamp = rospy.Time.now()
                 for i, det in enumerate(pred):  # detections per image
                     if det is not None and len(det):
@@ -94,7 +94,7 @@ class YoloV5():
                             label = '%s %.2f' % (self.names[int(cls)], conf)
                             plot_one_box(xyxy, self.outFrame, label=label, color=self.colors[int(cls)], line_thickness=3)
                             
-                            od = objectDetect()
+                            od = ObjectDetect()
                             od.id = int(cls)
                             od.name = label
                             x1 = int(xyxy[0])
