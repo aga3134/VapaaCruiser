@@ -4,10 +4,10 @@ import rospy
 import tf
 import tf2_ros
 from std_msgs.msg import String
-from std_srvs.srv import Trigger, SetBool
+from std_srvs.srv import Trigger,TriggerResponse,SetBool,SetBoolResponse
 import geometry_msgs.msg
 from vapaa_cruiser.msg import NavState
-from vapaa_cruiser.srv import TriggerWithInfo
+from vapaa_cruiser.srv import TriggerWithInfo,TriggerWithInfoResponse
 import math
 import numpy as np
 
@@ -77,18 +77,32 @@ class AutoNavigation():
 
     def ServiceStartNav(self,request):
         self.navState = "start"
-        print("start")
+        print(self.navState)
+        return TriggerWithInfoResponse(True)
 
     def ServiceStopNav(self,request):
         self.navState = "stop"
-        print("stop")
+        print(self.navState)
+        return TriggerResponse(
+            success=True,
+            message=""
+        )
 
     def ServicePauseNav(self,request):
         self.navState = "pause"
-        print("pause")
+        print(self.navState)
+        return TriggerResponse(
+            success=True,
+            message=""
+        )
 
     def ServiceSetLoop(self,request):
         self.navLoop = request.data
+        print(self.navLoop)
+        return SetBoolResponse(
+            success=True,
+            message=""
+        )
 
     def UpdateOdomToGPSTransform(self,x,y,lat,lng):
         #假設地球是正圓形，經度隨距離變化量隨緯度越高變化越快
@@ -213,13 +227,13 @@ class AutoNavigation():
                 latlng = self.XYToLatLng(pose.translation.x,pose.translation.y)
                 q = [pose.rotation.x,pose.rotation.y,pose.rotation.z,pose.rotation.w]
                 angle = tf.transformations.euler_from_quaternion(q)
-                navStateMsg = navState()
+                navStateMsg = NavState()
                 navStateMsg.lat = latlng["lat"]
                 navStateMsg.lng = latlng["lng"]
                 navStateMsg.angle = (angle[2]+self.Trans["angle"])*180/math.pi
                 navStateMsg.state = self.navState
                 navStateMsg.loop = self.navLoop
-                navStateMsg.pathID = None
+                navStateMsg.pathID = ""
                 navStateMsg.targetIndex = 0
                 self.pubNavState.publish(navStateMsg)
 

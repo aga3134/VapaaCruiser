@@ -5,7 +5,7 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import CompressedImage, CameraInfo
 from std_srvs.srv import Trigger, TriggerResponse
-from vapaa_cruiser.srv import TriggerWIthInfo
+from vapaa_cruiser.srv import TriggerWithInfo
 import json
 import numpy as np
 import os

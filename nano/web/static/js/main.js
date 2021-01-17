@@ -18,7 +18,7 @@ var app = new Vue({
         },
         topic: {
             carState:{name:"/car_state", type:"std_msgs/String",instance:null},
-            navState:{name:"/map_pose", type:"vapaa_cruiser/navState",instance:null},
+            navState:{name:"/nav_state", type:"vapaa_cruiser/NavState",instance:null},
             fsmState:{name:"/fsm/state",type:"std_msgs/String",instance:null},
             fsmEvent:{name:"/fsm/event",type:"std_msgs/String",instance:null},
             carCmd: {name:"/car_cmd",type:"geometry_msgs/Twist",instance:null},
@@ -714,10 +714,12 @@ var app = new Vue({
             this.navigation.openPathSelect = false;
             this.UpdateAutoNavPause(false);
         },
-        UpdateAutoNavLoop: function(loop){
+        ToggleAutoNavLoop: function(){
+	    var loop = this.navigation.loop;
             var request = new ROSLIB.ServiceRequest({data: loop});
-            this.service.autoNavLoop.instance.callService(request, function(result) {
-                if(result.success){
+            this.service.autoNavSetLoop.instance.callService(request, function(result) {
+                console.log(loop);
+		if(result.success){
                     this.navigation.loop = loop;
                 }
                 else{
@@ -727,8 +729,8 @@ var app = new Vue({
         },
         UpdateAutoNavPause: function(pause){
             var request = new ROSLIB.ServiceRequest({data: pause});
-            this.service.autoNavLoop.instance.callService(request, function(result) {
-                if(result.success){
+            this.service.autoNavPause.instance.callService(request, function(result) {
+		if(result.success){
                     this.navigation.pause = pause;
                 }
                 else{
