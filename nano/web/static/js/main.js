@@ -697,8 +697,8 @@ var app = new Vue({
             });
             this.service.autoNavStart.instance.callService(request, function(result) {
                 if(result.success){
-		    var path = JSON.parse(result.message);
-                    this.navigation.curPath = this.navigation.pathHash[path.id];
+		    var pathID = result.message;
+                    this.navigation.curPath = this.navigation.pathHash[pathID];
 
                     //add path line to map
                     var latlngs = [];

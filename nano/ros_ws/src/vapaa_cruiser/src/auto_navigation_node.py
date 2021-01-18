@@ -5,7 +5,7 @@ import tf
 import tf2_ros
 from std_msgs.msg import String
 from std_srvs.srv import Trigger,TriggerResponse,SetBool,SetBoolResponse
-import geometry_msgs.msg
+from geometry_msgs.msg import Twist,TransformStamped
 from vapaa_cruiser.msg import NavState
 from vapaa_cruiser.srv import TriggerWithInfo,TriggerWithInfoResponse
 import math
@@ -22,11 +22,22 @@ class AutoNavigation():
 
         self.subCarState = rospy.Subscriber("car_state",String,self.UpdateState)
         self.pubNavState = rospy.Publisher("nav_state",NavState,queue_size=1)
+        self.pubCarCmd = rospy.Publisher("car_cmd", Twist, queue_size=1)
 
         self.navState = "stop"
         self.navPause = False
         self.navLoop = False
-        self.pathID = ""
+        self.curPath = None
+        self.targetIndex = 0
+        self.drive = {
+            "targetForward": 0, "targetTurn": 0,
+            "curForward": 0, "curTurn": 0,
+            "errForward": 0, "errTurn": 0,
+            "errSumForward": 0, "errSumTurn": 0,
+            "forwardP": 1, "forwardI": 0, "forwardD": 0,
+            "turnP": 1, "turnI": 0, "turnD": 0,
+            "adjustByUS": True
+        }
         self.lat = -9999
         self.lng = -9999
         self.usDist = {"LF":-1,"F":-1,"RF":-1,"LB":-1,"B":-1,"RB":-1}
@@ -56,7 +67,7 @@ class AutoNavigation():
         #realsense向左看，對z軸旋轉-90度才是車體正前方
         #tf tree: /map -> /odom -> /camera_link -> /car
         broadcaster = tf2_ros.StaticTransformBroadcaster()
-        t = geometry_msgs.msg.TransformStamped()
+        t = TransformStamped()
         t.header.stamp = rospy.Time.now()
         t.header.frame_id = "camera_link"
         t.child_frame_id = "car"
@@ -74,12 +85,12 @@ class AutoNavigation():
         data = msg.data.split(",")
         self.lat = data[0]
         self.lng = data[1]
-        self.usDist["LF"] = data[2]
+        self.usDist["FL"] = data[2]
         self.usDist["F"] = data[3]
-        self.usDist["RF"] = data[4]
-        self.usDist["LB"] = data[5]
+        self.usDist["FR"] = data[4]
+        self.usDist["BL"] = data[5]
         self.usDist["B"] = data[6]
-        self.usDist["RB"] = data[7]
+        self.usDist["BR"] = data[7]
 
     def ServiceStartNav(self,request):
         info = json.loads(request.info)
@@ -93,20 +104,22 @@ class AutoNavigation():
                 success=False,
                 message="path not exist"
             )
-        p = {
+        self.curPath = {
             "id": row[0],
             "userID": row[1],
             "path": json.loads(row[2])
         }
+        self.targetIndex = 0
         self.navState = "start"
+        self.navPause = True
         return TriggerWithInfoResponse(
             success=True,
-            message=json.dumps(p)
+            message=self.curPath["id"]
         )
 
     def ServiceStopNav(self,request):
         self.navState = "stop"
-        print(self.navState)
+        self.curPath = None
         return TriggerResponse(
             success=True,
             message=""
@@ -114,7 +127,6 @@ class AutoNavigation():
 
     def ServiceSetPause(self,request):
         self.navPause = request.data
-        print(self.navPause)
         return SetBoolResponse(
             success=True,
             message=""
@@ -122,7 +134,6 @@ class AutoNavigation():
 
     def ServiceSetLoop(self,request):
         self.navLoop = request.data
-        print(self.navLoop)
         return SetBoolResponse(
             success=True,
             message=""
@@ -229,6 +240,109 @@ class AutoNavigation():
         self.lng = scale*(cosAngle*x-sinAngle*y)/math.cos(self.lat*math.pi/180.0)+offsetX
         #print([x,y,self.lat,self.lng])
 
+    def AutoDrive(self, curPose):
+        if self.navState != "start":
+            return
+        if self.navPause:
+            return
+        if self.curPath is None:
+            return
+        if self.targetIndex < 0:
+            return
+        elif self.targetIndex >= len(self.curPath.path.ptArr):
+            if self.navLoop:
+                self.targetIndex = 0
+            else:
+                return
+        distTolerance = 0.1
+        turnScale = 1.0/math.pi
+        forwardScale = 0.3
+        target = self.curPath.path.ptArr[self.targetIndex]
+        targetXY = self.LatLngToXY(target["lat"],target["lng"])
+        diffXY = {
+            "x": targetXY["x"]-curPose.translation.x,
+            "y": targetXY["y"]-curPose.translation.y
+        }
+        #check if arrive target
+        dist = math.sqrt(diffXY["x"]*diffXY["x"]+diffXY["y"]*diffXY["y"])
+        if dist < distTolerance:
+            self.targetIndex+=1
+            return
+
+        #compute drive dirrection
+        q = [curPose.rotation.x,curPose.rotation.y,curPose.rotation.z,curPose.rotation.w]
+        curAngle = tf.transformations.euler_from_quaternion(q)
+        targetAngle = math.atan2(diffXY["y"],diffXY["x"])
+        self.drive["targetTurn"] = (targetAngle-curAngle)*turnScale
+        self.drive["targetForward"] = dist*forwardScale
+
+        #依超音波測距調整command
+        if self.drive["adjustByUS"]:
+            turnForce = 0
+            turnForceScale = 1
+            breakForce = 0
+            breakForceScale = 1
+            activeDist = 1000
+            if self.drive["targetForward"] > 0:
+                if self.usDist["FL"] > 0 and self.usDist["FL"] < activeDist:
+                    turnForce += turnForceScale/self.usDist["FL"]
+                if self.usDist["FR"] > 0 and self.usDist["FR"] < activeDist:
+                    turnForce -= turnForceScale/self.usDist["FR"]
+                if self.usDist["F"] > 0 and self.usDist["F"] < activeDist:
+                    breakForce -= breakForceScale/self.usDist["F"]
+            else:
+                if self.usDist["BL"] > 0 and self.usDist["BL"] < activeDist:
+                    turnForce -= turnForceScale/self.usDist["BL"]
+                if self.usDist["BR"] > 0 and self.usDist["BR"] < activeDist:
+                    turnForce += turnForceScale/self.usDist["BR"]
+                if self.usDist["B"] > 0 and self.usDist["B"] < activeDist:
+                    breakForce += breakForceScale/self.usDist["B"]
+            self.drive["targetTurn"] += turnForce
+            self.drive["targetForward"] += breakForce
+
+        #limit target magnitude
+        if self.drive["targetForward"] > 1:
+            self.drive["targetForward"] = 1
+        elif self.drive["targetForward"] < -1:
+            self.drive["targetForward"] = -1
+        if self.drive["targetTurn"] > 1:
+            self.drive["targetTurn"] = 1
+        elif self.drive["targetTurn"] < -1:
+            self.drive["targetTurn"] = -1
+
+        #update command by PID controller
+        errForward = self.drive["targetForward"] - self.drive["curForward"]
+        errTurn = self.drive["targetTurn"] - self.drive["curTurn"]
+        errDiffForward = errForward - self.drive["errForward"]
+        errDiffTurn = errTurn - self.drive["errTurn"]
+        self.drive["errSumForward"] += errForward
+        self.drive["errSumTurn"] += errTurn
+
+        self.drive["curForward"] += errForward*self.drive["forwardP"] + self.drive["errSumForward"]*self.drive["forwardI"] + errDiffForward*self.drive["forwardD"]
+        
+        self.drive["curTurn"] += errTurn*self.drive["turnP"] + self.drive["errSumTurn"]*self.drive["turnI"] + errDiffTurn*self.drive["turnD"]
+
+        self.drive["errForward"] = errForward
+        self.drive["errTurn"] = errTurn
+
+        #limit command
+        if self.drive["curForward"] > 1:
+            self.drive["curForward"] = 1
+        elif self.drive["curForward"] < -1:
+            self.drive["curForward"] = -1
+        if self.drive["curTurn"] > 1:
+            self.drive["curTurn"] = 1
+        elif self.drive["curTurn"] < -1:
+            self.drive["curTurn"] = -1
+
+        #publish command message
+        msg = Twist()
+        msg.linear.x = self.drive["curForward"]
+        msg.angular.z = self.drive["curTurn"]
+        self.pubCarCmd.publish(msg)
+
+
+
     def Run(self):
         rate = rospy.Rate(self.updateRate)
         start = rospy.Time.now()
@@ -248,6 +362,9 @@ class AutoNavigation():
                     self.Trans["inited"] = True
                 self.UpdateOdomToGPSTransform(pose.translation.x,pose.translation.y,self.lat,self.lng)
                 
+                self.AutoDrive(pose)
+
+                #publish navigation state
                 latlng = self.XYToLatLng(pose.translation.x,pose.translation.y)
                 q = [pose.rotation.x,pose.rotation.y,pose.rotation.z,pose.rotation.w]
                 angle = tf.transformations.euler_from_quaternion(q)
@@ -258,8 +375,12 @@ class AutoNavigation():
                 navStateMsg.state = self.navState
                 navStateMsg.loop = self.navLoop
                 navStateMsg.pause = self.navPause
-                navStateMsg.pathID = ""
-                navStateMsg.targetIndex = 0
+                if self.curPath is not None:
+                    navStateMsg.pathID = self.curPath["id"]
+                    navStateMsg.targetIndex = self.targetIndex
+                else:
+                    navStateMsg.pathID = ""
+                    navStateMsg.targetIndex = 0
                 self.pubNavState.publish(navStateMsg)
 
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
