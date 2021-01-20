@@ -177,10 +177,15 @@ var app = new Vue({
                 messageType : this.topic.navState.type
             });
             this.topic.navState.instance.subscribe(function(msg){
-                this.navigation.selectPathID = msg.pathID;
+		this.navigation.selectPathID = msg.pathID;
                 this.navigation.loop = msg.loop;
                 this.navigation.pause = msg.pause;
                 this.navigation.targetIndex = msg.targetIndex;
+		
+                if(this.navigation.selectPathID == "" && this.navigation.curPath){
+                    this.navigation.curPath = null;
+                    toastr.success("結束自動巡航");
+		}
 
                 if(this.CheckGPSValid(msg.lat,msg.lng)){
                     this.status.gps.lat = msg.lat;
@@ -712,6 +717,7 @@ var app = new Vue({
                     this.navigation.pathLine = L.polyline(latlngs, {color: "red"});
                     this.navigation.pathLine.addTo(this.navigation.map);
                     this.navigation.map.fitBounds(this.navigation.pathLine.getBounds());
+                    toastr.info("路徑讀取完成，請按下播放鍵開始巡航");
                 }
                 else{
                     toastr.error("選擇路徑失敗");

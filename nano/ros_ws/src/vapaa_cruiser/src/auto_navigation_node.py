@@ -127,6 +127,10 @@ class AutoNavigation():
 
     def ServiceSetPause(self,request):
         self.navPause = request.data
+        if not self.navPause and self.curPath is not None:
+            target = self.curPath["path"]["ptArr"][self.targetIndex]
+            print("continue go to target %d, lat: %f, lng: %f" % (self.targetIndex,target["lat"],target["lng"]))
+
         return SetBoolResponse(
             success=True,
             message=""
@@ -247,17 +251,13 @@ class AutoNavigation():
             return
         if self.curPath is None:
             return
-        if self.targetIndex < 0:
+        if self.targetIndex < 0 or self.targetIndex >= len(self.curPath["path"]["ptArr"]):
             return
-        elif self.targetIndex >= len(self.curPath.path.ptArr):
-            if self.navLoop:
-                self.targetIndex = 0
-            else:
-                return
-        distTolerance = 0.1
+        
+        distTolerance = 0.5
         turnScale = 1.0/math.pi
         forwardScale = 0.3
-        target = self.curPath.path.ptArr[self.targetIndex]
+        target = self.curPath["path"]["ptArr"][self.targetIndex]
         targetXY = self.LatLngToXY(target["lat"],target["lng"])
         diffXY = {
             "x": targetXY["x"]-curPose.translation.x,
@@ -267,11 +267,21 @@ class AutoNavigation():
         dist = math.sqrt(diffXY["x"]*diffXY["x"]+diffXY["y"]*diffXY["y"])
         if dist < distTolerance:
             self.targetIndex+=1
-            return
+            if self.targetIndex >= len(self.curPath["path"]["ptArr"]):
+                if self.navLoop:
+                    self.targetIndex = 0
+                else:
+                    self.navState = "stop"
+                    self.curPath = None
+                    print("finish navigation")
+                    return
+
+            target = self.curPath["path"]["ptArr"][self.targetIndex]
+            print("go to target %d, lat: %f, lng: %f" % (self.targetIndex,target["lat"],target["lng"]))
 
         #compute drive dirrection
         q = [curPose.rotation.x,curPose.rotation.y,curPose.rotation.z,curPose.rotation.w]
-        curAngle = tf.transformations.euler_from_quaternion(q)
+        curAngle = tf.transformations.euler_from_quaternion(q)[2]
         targetAngle = math.atan2(diffXY["y"],diffXY["x"])
         self.drive["targetTurn"] = (targetAngle-curAngle)*turnScale
         self.drive["targetForward"] = dist*forwardScale
