@@ -60,6 +60,10 @@
     </include>
 
     <node name="auto_navigation_node" pkg="vapaa_cruiser" type="auto_navigation_node.py" output="screen"> 
+        <param name="useFakeGPS" value="true"/>
+        <param name="fakeInitLat" value="23"/>
+        <param name="fakeInitLng" value="121"/>
+        <param name="fakeInitAngle" value="180"/>
     </node>
     
 </launch>

@@ -19,6 +19,10 @@ class AutoNavigation():
         self.updateRate = rospy.get_param("~updateRate",30)
         rospack = rospkg.RosPack()
         self.dbFile = rospy.get_param("~dbFile",rospack.get_path("vapaa_cruiser")+"/../../../web/vapaa_cruiser.db")
+        self.useFakeGPS = rospy.get_param("~useFakeGPS", False)
+        self.fakeInitLat = rospy.get_param("~fakeInitLat", 23)
+        self.fakeInitLng = rospy.get_param("~fakeInitLng", 121)
+        self.fakeInitAngle = rospy.get_param("~fakeInitAngle", 180)
 
         self.subCarState = rospy.Subscriber("car_state",String,self.UpdateState)
         self.pubNavState = rospy.Publisher("nav_state",NavState,queue_size=1)
@@ -232,9 +236,9 @@ class AutoNavigation():
         return {"x":rotX, "y":rotY}
 
     def GenFakeLatLng(self,x,y): #generate fake lat lng for testing
-        offsetX = 121
-        offsetY = 23
-        angle = -180.0*math.pi/180.0
+        offsetX = self.fakeInitLng
+        offsetY = self.fakeInitLat
+        angle = self.fakeInitAngle*math.pi/180.0
         scale = 180.0/(6378137*math.pi)
         #print([scale,angle,offsetX,offsetY])
 
@@ -243,6 +247,14 @@ class AutoNavigation():
         self.lat = scale*(sinAngle*x+cosAngle*y)+offsetY
         self.lng = scale*(cosAngle*x-sinAngle*y)/math.cos(self.lat*math.pi/180.0)+offsetX
         #print([x,y,self.lat,self.lng])
+    def CheckGPSValid(self,lat,lng):
+        lat = float(lat)
+        lng = float(lng)
+        if math.isnan(lat) or math.isnan(lng):
+            return False
+        if lat < -90 or lat > 90 or lng < -180 or lng > 180:
+            return False
+        return True
 
     def AutoDrive(self, curPose):
         if self.navState != "start":
@@ -364,7 +376,11 @@ class AutoNavigation():
                 t = elapse.secs+elapse.nsecs*1e-9
                 #pose.translation.x = t
                 #pose.translation.y = t
-                self.GenFakeLatLng(pose.translation.x,pose.translation.y)
+                if self.useFakeGPS:
+                    self.GenFakeLatLng(pose.translation.x,pose.translation.y)
+                if not self.CheckGPSValid(self.lat,self.lng):
+                    print("invalid gps")
+                    continue
                 if not self.Trans["inited"]:
                     self.Trans["angle"] = 0
                     self.Trans["offsetX"] = self.lng
