@@ -13,7 +13,7 @@ L.SvgIcon = L.DivIcon.extend({
         L.setOptions(this, options);
     },
     setAngle: function(angle){
-        this.angle = angle;
+        this.angle = -angle;	//svg rotate是順時鐘，跟ros rotate相反
         this.update();
     },
     update: function(){

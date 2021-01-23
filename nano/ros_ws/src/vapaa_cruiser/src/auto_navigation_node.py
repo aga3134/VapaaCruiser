@@ -227,12 +227,12 @@ class AutoNavigation():
         return {"lat":lat, "lng":lng}
 
     def LatLngToXY(self,lat,lng):
-        x = (lat-self.Trans["offsetY"])/self.Trans["scale"]
-        y = (lng-self.Trans["offsetX"])/self.Trans["scale"]
+        y = (lat-self.Trans["offsetY"])/self.Trans["scale"]
+        x = (lng-self.Trans["offsetX"])/self.Trans["scale"]
         cosAngle = math.cos(-self.Trans["angle"])
         sinAngle = math.sin(-self.Trans["angle"])
-        rotX = sinAngle*x+cosAngle*y
-        rotY = cosAngle*x-sinAngle*y
+        rotX = cosAngle*x-sinAngle*y
+        rotY = sinAngle*x+cosAngle*y
         return {"x":rotX, "y":rotY}
 
     def GenFakeLatLng(self,x,y): #generate fake lat lng for testing
@@ -245,8 +245,11 @@ class AutoNavigation():
         cosAngle = math.cos(angle)
         sinAngle = math.sin(angle)
         self.lat = scale*(sinAngle*x+cosAngle*y)+offsetY
-        self.lng = scale*(cosAngle*x-sinAngle*y)/math.cos(self.lat*math.pi/180.0)+offsetX
+        #直接assign給self.lng python會莫名其妙出現typeerror: can't multiply sequence by non-int of type 'float'
+        lat = scale*(cosAngle*x-sinAngle*y)/math.cos(self.lat*math.pi/180.0)+offsetX
+        self.lng = lat
         #print([x,y,self.lat,self.lng])
+    
     def CheckGPSValid(self,lat,lng):
         lat = float(lat)
         lng = float(lng)
@@ -297,6 +300,7 @@ class AutoNavigation():
         targetAngle = math.atan2(diffXY["y"],diffXY["x"])
         self.drive["targetTurn"] = (targetAngle-curAngle)*turnScale
         self.drive["targetForward"] = dist*forwardScale
+        print([self.drive["targetForward"],self.drive["targetTurn"]])
 
         #依超音波測距調整command
         if self.drive["adjustByUS"]:
@@ -331,6 +335,7 @@ class AutoNavigation():
             self.drive["targetTurn"] = 1
         elif self.drive["targetTurn"] < -1:
             self.drive["targetTurn"] = -1
+        #print([self.drive["targetForward"],self.drive["targetTurn"]])
 
         #update command by PID controller
         errForward = self.drive["targetForward"] - self.drive["curForward"]
@@ -356,6 +361,7 @@ class AutoNavigation():
             self.drive["curTurn"] = 1
         elif self.drive["curTurn"] < -1:
             self.drive["curTurn"] = -1
+        #print([self.drive["curForward"],self.drive["curTurn"]])
 
         #publish command message
         msg = Twist()
@@ -371,7 +377,7 @@ class AutoNavigation():
         while not rospy.is_shutdown():
             try:
                 #get car pose from odometry
-                pose = self.tfBuffer.lookup_transform("car", "map", rospy.Time()).transform
+                pose = self.tfBuffer.lookup_transform("map", "car", rospy.Time()).transform
                 elapse = (rospy.Time.now()-start)
                 t = elapse.secs+elapse.nsecs*1e-9
                 #pose.translation.x = t
@@ -394,6 +400,7 @@ class AutoNavigation():
                 latlng = self.XYToLatLng(pose.translation.x,pose.translation.y)
                 q = [pose.rotation.x,pose.rotation.y,pose.rotation.z,pose.rotation.w]
                 angle = tf.transformations.euler_from_quaternion(q)
+                #print([pose.translation.x,pose.translation.y,(angle[2]+self.Trans["angle"])*180/math.pi])
                 navStateMsg = NavState()
                 navStateMsg.lat = latlng["lat"]
                 navStateMsg.lng = latlng["lng"]
