@@ -87,14 +87,14 @@ class AutoNavigation():
 
     def UpdateState(self,msg):
         data = msg.data.split(",")
-        self.lat = data[0]
-        self.lng = data[1]
-        self.usDist["FL"] = data[2]
-        self.usDist["F"] = data[3]
-        self.usDist["FR"] = data[4]
-        self.usDist["BL"] = data[5]
-        self.usDist["B"] = data[6]
-        self.usDist["BR"] = data[7]
+        self.lat = float(data[0])
+        self.lng = float(data[1])
+        self.usDist["FL"] = float(data[2])
+        self.usDist["F"] = float(data[3])
+        self.usDist["FR"] = float(data[4])
+        self.usDist["BL"] = float(data[5])
+        self.usDist["B"] = float(data[6])
+        self.usDist["BR"] = float(data[7])
 
     def ServiceStartNav(self,request):
         info = json.loads(request.info)
@@ -269,8 +269,8 @@ class AutoNavigation():
         if self.targetIndex < 0 or self.targetIndex >= len(self.curPath["path"]["ptArr"]):
             return
         
-        distTolerance = 0.5
-        turnScale = 1.0/math.pi
+        distTolerance = 0.2
+        turnScale = 1.0
         forwardScale = 0.3
         target = self.curPath["path"]["ptArr"][self.targetIndex]
         targetXY = self.LatLngToXY(target["lat"],target["lng"])
@@ -298,33 +298,34 @@ class AutoNavigation():
         q = [curPose.rotation.x,curPose.rotation.y,curPose.rotation.z,curPose.rotation.w]
         curAngle = tf.transformations.euler_from_quaternion(q)[2]
         targetAngle = math.atan2(diffXY["y"],diffXY["x"])
-        self.drive["targetTurn"] = (targetAngle-curAngle)*turnScale
+        self.drive["targetTurn"] = -(targetAngle-curAngle)*turnScale
         self.drive["targetForward"] = dist*forwardScale
-        print([self.drive["targetForward"],self.drive["targetTurn"]])
+        #print([self.drive["targetForward"],self.drive["targetTurn"]])
 
         #依超音波測距調整command
         if self.drive["adjustByUS"]:
             turnForce = 0
-            turnForceScale = 1
-            breakForce = 0
-            breakForceScale = 1
+            turnExpScale = 2e-3
+            breakFactor = 1
+            breakExpScale = 4e-3
             activeDist = 1000
             if self.drive["targetForward"] > 0:
                 if self.usDist["FL"] > 0 and self.usDist["FL"] < activeDist:
-                    turnForce += turnForceScale/self.usDist["FL"]
+                    turnForce += math.exp(-self.usDist["FL"]*turnExpScale)
                 if self.usDist["FR"] > 0 and self.usDist["FR"] < activeDist:
-                    turnForce -= turnForceScale/self.usDist["FR"]
+                    turnForce -= math.exp(-self.usDist["FR"]*turnExpScale)
                 if self.usDist["F"] > 0 and self.usDist["F"] < activeDist:
-                    breakForce -= breakForceScale/self.usDist["F"]
+                    breakFactor = (1-math.exp(-self.usDist["F"]*breakExpScale))
             else:
                 if self.usDist["BL"] > 0 and self.usDist["BL"] < activeDist:
-                    turnForce -= turnForceScale/self.usDist["BL"]
+                    turnForce -= math.exp(-self.usDist["BL"]*turnExpScale)
                 if self.usDist["BR"] > 0 and self.usDist["BR"] < activeDist:
-                    turnForce += turnForceScale/self.usDist["BR"]
+                    turnForce += math.exp(-self.usDist["BR"]*turnExpScale)
                 if self.usDist["B"] > 0 and self.usDist["B"] < activeDist:
-                    breakForce += breakForceScale/self.usDist["B"]
+                    breakFactor = (1-math.exp(-self.usDist["B"]*breakExpScale))
+            #print([self.drive["targetForward"],self.drive["targetTurn"],breakFactor,turnForce])
             self.drive["targetTurn"] += turnForce
-            self.drive["targetForward"] += breakForce
+            self.drive["targetForward"] *= breakFactor
 
         #limit target magnitude
         if self.drive["targetForward"] > 1:
@@ -335,7 +336,7 @@ class AutoNavigation():
             self.drive["targetTurn"] = 1
         elif self.drive["targetTurn"] < -1:
             self.drive["targetTurn"] = -1
-        #print([self.drive["targetForward"],self.drive["targetTurn"]])
+        print([self.drive["targetForward"],self.drive["targetTurn"]])
 
         #update command by PID controller
         errForward = self.drive["targetForward"] - self.drive["curForward"]
