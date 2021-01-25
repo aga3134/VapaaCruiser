@@ -124,6 +124,7 @@ class AutoNavigation():
     def ServiceStopNav(self,request):
         self.navState = "stop"
         self.curPath = None
+        self.StopDrive()
         return TriggerResponse(
             success=True,
             message=""
@@ -134,6 +135,8 @@ class AutoNavigation():
         if not self.navPause and self.curPath is not None:
             target = self.curPath["path"]["ptArr"][self.targetIndex]
             print("continue go to target %d, lat: %f, lng: %f" % (self.targetIndex,target["lat"],target["lng"]))
+        else:
+            self.StopDrive()
 
         return SetBoolResponse(
             success=True,
@@ -258,6 +261,12 @@ class AutoNavigation():
         if lat < -90 or lat > 90 or lng < -180 or lng > 180:
             return False
         return True
+
+    def StopDrive(self):
+        msg = Twist()
+        msg.linear.x = 0
+        msg.angular.z = 0
+        self.pubCarCmd.publish(msg)
 
     def AutoDrive(self, curPose):
         if self.navState != "start":
