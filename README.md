@@ -1,4 +1,8 @@
 # 田間巡航艦
+<img src="https://github.com/aga3134/VapaaCruiser/blob/master/photo/front.JPG?raw=true" width="480px">
+
+<img src="https://github.com/aga3134/VapaaCruiser/blob/master/photo/back.JPG?raw=true" width="480px">
+
 ## 簡介
 田間巡航艦是繼土砲一號後另一個農業機器人專案，主要用來實驗在田間巡航的技術可行性，以及用自己的屍體展示地雷在哪裡。
 
